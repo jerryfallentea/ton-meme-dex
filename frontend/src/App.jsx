@@ -7,6 +7,7 @@ import TradeModal from './components/TradeModal';
 import Home from './pages/Home';
 import TokenDetail from './pages/TokenDetail';
 import Portfolio from './pages/Portfolio';
+import Admin from './pages/Admin';
 
 const MANIFEST_URL = `${window.location.origin}/tonconnect-manifest.json`;
 
@@ -23,6 +24,7 @@ function Layout() {
           <Route path="/" element={<Home />} />
           <Route path="/token/:id" element={<TokenDetail />} />
           <Route path="/portfolio" element={<Portfolio />} />
+          <Route path="/admin" element={<Admin />} />
           <Route path="*" element={<Home />} />
         </Routes>
       </div>
