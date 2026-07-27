@@ -4,11 +4,11 @@
   publish = "dist"
 
 [build.environment]
-  VITE_API_URL = "http://169.58.1.141:3001"
+  VITE_API_URL = "https://api.pakjss.uk"
 
 [[redirects]]
   from   = "/api/*"
-  to     = "http://169.58.1.141:3001/api/:splat"
+  to     = "https://api.pakjss.uk/api/:splat"
   status = 200
   force  = true
 
