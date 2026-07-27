@@ -1,5 +1,6 @@
 const express = require('express');
 const db = require('../db/database');
+const { getLiveCandle } = require('../services/chartSimulator');
 
 const router = express.Router();
 const TON_PRICE_USD = 5.2;
@@ -34,6 +35,13 @@ router.get('/:id/candles', (req, res) => {
   params.push(Number(limit));
 
   const candles = db.prepare(query).all(...params);
+
+  // Append the live forming candle so the chart has no gap on initial load
+  const live = getLiveCandle(Number(req.params.id));
+  if (live && (!candles.length || live.time > candles[candles.length - 1].time)) {
+    candles.push(live);
+  }
+
   res.json(candles);
 });
 

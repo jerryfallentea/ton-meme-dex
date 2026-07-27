@@ -178,24 +178,46 @@ function buildNextCandle(token) {
   return candle;
 }
 
+// ─── Getter for the current forming candle (used by candles API) ─────────────
+
+function getLiveCandle(tokenId) {
+  const live = liveCandles.get(tokenId);
+  if (!live) return null;
+  return {
+    time:   live.time,
+    open:   Number(live.open.toFixed(8)),
+    high:   Number(live.high.toFixed(8)),
+    low:    Number(live.low.toFixed(8)),
+    close:  Number(live.close.toFixed(8)),
+    volume: Number(live.volume.toFixed(2)),
+  };
+}
+
 // ─── Start ────────────────────────────────────────────────────────────────────
 
 function startChartSimulator(io) {
   _io = io;
 
-  // Bootstrap live candles from DB on startup
+  // Bootstrap live candles and immediately catch up all missed intervals.
+  // Without this, catch-up happens one candle per 10-second tick, leaving
+  // a visible time gap on the chart if the server was down for a while.
   const tokens = db.prepare('SELECT * FROM tokens WHERE active = 1').all();
   for (const token of tokens) {
     const lastRow = db.prepare('SELECT * FROM candlesticks WHERE token_id = ? ORDER BY time DESC LIMIT 1').get(token.id);
-    if (lastRow) initLiveCandle(token.id, lastRow.close, lastRow.time + token.candle_interval);
+    if (!lastRow) continue;
+    initLiveCandle(token.id, lastRow.close, lastRow.time + token.candle_interval);
+    // Drain all missed intervals synchronously before clients connect
+    let missed;
+    while ((missed = buildNextCandle(token)) !== null) { /* silent catch-up */ }
   }
 
-  // Every 10 s: close candles whose interval has ended
+  // Every 10 s: close candles whose interval has ended.
+  // Use a while loop so multiple missed intervals are all caught up in one tick.
   setInterval(() => {
     const activeTokens = db.prepare('SELECT * FROM tokens WHERE active = 1').all();
     for (const token of activeTokens) {
-      const candle = buildNextCandle(token);
-      if (candle) {
+      let candle;
+      while ((candle = buildNextCandle(token)) !== null) {
         io.to(`token:${token.id}`).emit('new-candle', { tokenId: token.id, candle });
         io.to(`token:${token.id}`).emit('price-update', { tokenId: token.id, price: candle.close });
       }
@@ -209,4 +231,4 @@ function startChartSimulator(io) {
   }, 2000);
 }
 
-module.exports = { seedCandlesForToken, startChartSimulator, generateHistoricalCandles, updateLiveCandle };
+module.exports = { seedCandlesForToken, startChartSimulator, generateHistoricalCandles, updateLiveCandle, getLiveCandle };
