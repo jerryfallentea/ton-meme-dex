@@ -276,6 +276,7 @@ export default function TokenDetail() {
       {showModal && (
         <BuySellModal
           token={{ ...token, price }}
+          portfolio={portfolio}
           onClose={() => setShowModal(false)}
           onSuccess={(tx) => {
             setTxns((prev) => [tx, ...prev].slice(0, 50));

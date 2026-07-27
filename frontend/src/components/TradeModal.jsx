@@ -36,7 +36,8 @@ const inputStyle = {
   outline: 'none',
 };
 const USD_PRESETS = [10, 50, 100, 500];
-const TP_PRESETS = [25, 50, 75, 100];
+const TP_PRESETS  = [25, 50, 75, 100];
+const TON_PRICE   = 5.2;
 
 export default function TradeModal({ onClose }) {
   const { connected, address, connect } = useTonConnect();
@@ -58,6 +59,7 @@ export default function TradeModal({ onClose }) {
   const [lastTx, setLastTx]           = useState(null); // result after buy
 
   // TP step
+  const [tonBalance, setTonBalance]   = useState(0);
   const [tpPrice, setTpPrice]         = useState('');
   const [tpPct, setTpPct]             = useState(50);
   const [tpLoading, setTpLoading]     = useState(false);
@@ -77,6 +79,15 @@ export default function TradeModal({ onClose }) {
     fetch(`${API}/api/tokens/${selectedToken.id}/portfolio/${address}`)
       .then((r) => r.json()).then(setPortfolio).catch(() => {});
   }, [selectedToken, connected, address]);
+
+  // Fetch TON balance for buy Max
+  useEffect(() => {
+    if (!connected || !address) return;
+    fetch(`${API}/api/orders/wallet/${address}`)
+      .then((r) => r.json())
+      .then((d) => setTonBalance(d.balance_ton || 0))
+      .catch(() => {});
+  }, [connected, address]);
 
   // ── Derived values ──────────────────────────────────────────────────────────
   const price       = selectedToken?.price || 0;
@@ -267,15 +278,32 @@ export default function TradeModal({ onClose }) {
 
               {tradeTab === 'buy' ? (
                 <>
-                  <label style={{ fontSize: '12px', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
-                    Spend (USD)
-                  </label>
-                  <input
-                    type="number" min="0" value={usdAmount}
-                    onChange={(e) => setUsdAmount(e.target.value)}
-                    placeholder="0.00"
-                    style={{ ...inputStyle, marginBottom: '8px' }}
-                  />
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                    <label style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Spend (USD)</label>
+                    {tonBalance > 0 && (
+                      <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                        TON Balance: <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--ton)' }}>{tonBalance.toFixed(2)}</span>
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+                    <input
+                      type="number" min="0" value={usdAmount}
+                      onChange={(e) => setUsdAmount(e.target.value)}
+                      placeholder="0.00"
+                      style={{ ...inputStyle, flex: 1 }}
+                    />
+                    {tonBalance > 0 && price > 0 && (
+                      <button
+                        onClick={() => setUsdAmount((tonBalance * TON_PRICE).toFixed(2))}
+                        style={{
+                          padding: '10px 14px', borderRadius: '8px', fontWeight: 700, fontSize: '13px',
+                          background: 'rgba(0,208,132,0.12)', color: 'var(--green)',
+                          border: '1px solid rgba(0,208,132,0.35)', flexShrink: 0,
+                        }}
+                      >Max</button>
+                    )}
+                  </div>
                   <div style={{ display: 'flex', gap: '6px', marginBottom: '14px' }}>
                     {USD_PRESETS.map((p) => (
                       <button key={p} onClick={() => setUsdAmount(String(p))}
@@ -317,7 +345,7 @@ export default function TradeModal({ onClose }) {
                         style={{ width: '100%', accentColor: 'var(--red)', marginBottom: '8px' }}
                       />
                       <div style={{ display: 'flex', gap: '6px', marginBottom: '14px' }}>
-                        {TP_PRESETS.map((p) => (
+                        {[25, 50, 75].map((p) => (
                           <button key={p} onClick={() => setSellPct(p)}
                             style={{
                               flex: 1, padding: '5px', borderRadius: '6px', fontSize: '12px', fontWeight: 600,
@@ -327,6 +355,14 @@ export default function TradeModal({ onClose }) {
                             }}
                           >{p}%</button>
                         ))}
+                        <button onClick={() => setSellPct(100)}
+                          style={{
+                            flex: 1, padding: '5px', borderRadius: '6px', fontSize: '12px', fontWeight: 700,
+                            background: sellPct === 100 ? 'var(--red)' : 'var(--bg-hover)',
+                            color: sellPct === 100 ? '#fff' : 'var(--text-secondary)',
+                            border: `1px solid ${sellPct === 100 ? 'var(--red)' : 'var(--border)'}`,
+                          }}
+                        >Max</button>
                       </div>
                     </>
                   )}
