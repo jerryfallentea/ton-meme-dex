@@ -20,6 +20,7 @@ db.exec(`
     description TEXT,
     price REAL NOT NULL,
     initial_price REAL NOT NULL,
+    total_supply REAL NOT NULL DEFAULT 1000000000,
     market_cap REAL NOT NULL DEFAULT 0,
     volume_24h REAL NOT NULL DEFAULT 0,
     change_24h REAL NOT NULL DEFAULT 0,

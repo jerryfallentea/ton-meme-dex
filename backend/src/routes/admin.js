@@ -35,13 +35,15 @@ router.post('/tokens', (req, res) => {
     return res.status(400).json({ error: 'name, symbol, and price are required' });
   }
 
+  const mc = market_cap || price * 1000000000;
+  const total_supply = Math.round(mc / price);
   const result = db.prepare(`
-    INSERT INTO tokens (name, symbol, image, description, price, initial_price, market_cap,
+    INSERT INTO tokens (name, symbol, image, description, price, initial_price, total_supply, market_cap,
                         volatility, trend_strength, pump_chance, tx_speed, candle_interval)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).run(
     name, symbol.toUpperCase(), image || '', description || '',
-    price, price, market_cap || price * 1000000000,
+    price, price, total_supply, mc,
     volatility, trend_strength, pump_chance, tx_speed, candle_interval
   );
 

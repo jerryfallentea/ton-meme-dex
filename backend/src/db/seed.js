@@ -2,6 +2,7 @@ require('dotenv').config();
 const db = require('./database');
 const { seedCandlesForToken } = require('../services/chartSimulator');
 
+// total_supply = initial_market_cap / initial_price — fixed forever, market cap scales with price
 const tokens = [
   {
     name: 'GramPepe',
@@ -11,6 +12,7 @@ const tokens = [
     price: 0.00000842,
     initial_price: 0.000003,
     market_cap: 8420000,
+    total_supply: Math.round(8420000 / 0.000003),
     holders: 3241,
     volatility: 0.035,
     trend_strength: 1.4,
@@ -26,6 +28,7 @@ const tokens = [
     price: 0.00124,
     initial_price: 0.0005,
     market_cap: 12400000,
+    total_supply: Math.round(12400000 / 0.0005),
     holders: 7832,
     volatility: 0.022,
     trend_strength: 1.1,
@@ -41,6 +44,7 @@ const tokens = [
     price: 0.00000021,
     initial_price: 0.0000001,
     market_cap: 2100000,
+    total_supply: Math.round(2100000 / 0.0000001),
     holders: 1547,
     volatility: 0.05,
     trend_strength: 1.8,
@@ -56,6 +60,7 @@ const tokens = [
     price: 0.0000551,
     initial_price: 0.00002,
     market_cap: 5510000,
+    total_supply: Math.round(5510000 / 0.00002),
     holders: 2894,
     volatility: 0.028,
     trend_strength: 1.25,
@@ -71,6 +76,7 @@ const tokens = [
     price: 0.000000091,
     initial_price: 0.00000005,
     market_cap: 910000,
+    total_supply: Math.round(910000 / 0.00000005),
     holders: 892,
     volatility: 0.045,
     trend_strength: 1.6,
@@ -95,8 +101,8 @@ if (existing > 0) {
 }
 
 const insert = db.prepare(`
-  INSERT INTO tokens (name, symbol, image, description, price, initial_price, market_cap, holders, volatility, trend_strength, pump_chance, tx_speed, candle_interval)
-  VALUES (@name, @symbol, @image, @description, @price, @initial_price, @market_cap, @holders, @volatility, @trend_strength, @pump_chance, @tx_speed, @candle_interval)
+  INSERT INTO tokens (name, symbol, image, description, price, initial_price, total_supply, market_cap, holders, volatility, trend_strength, pump_chance, tx_speed, candle_interval)
+  VALUES (@name, @symbol, @image, @description, @price, @initial_price, @total_supply, @market_cap, @holders, @volatility, @trend_strength, @pump_chance, @tx_speed, @candle_interval)
 `);
 
 for (const token of tokens) {

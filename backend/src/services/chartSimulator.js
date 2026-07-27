@@ -99,7 +99,7 @@ function buildNextCandle(token) {
     candle.close,
     change24h,
     vol24h,
-    candle.close * 1000000000,
+    candle.close * (token.total_supply || 1000000000),
     token.id
   );
 
