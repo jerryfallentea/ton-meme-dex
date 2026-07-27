@@ -1,13 +1,8 @@
 import { useTonConnectUI, useTonWallet } from '@tonconnect/ui-react';
 
 const TRUST_WALLET = {
-  appName: 'trust_wallet',
-  name: 'Trust Wallet',
-  imageUrl: 'https://assets-cdn.trustwallet.com/dapps/trust.logo.png',
-  aboutUrl: 'https://trustwallet.com',
   universalLink: 'https://link.trustwallet.com/ton-connect',
   bridgeUrl: 'https://bridge.tonapi.io/bridge',
-  platforms: ['ios', 'android', 'chrome', 'firefox', 'edge', 'safari'],
 };
 
 export function useTonConnect() {
@@ -26,7 +21,20 @@ export function useTonConnect() {
   }
 
   function connectTrustWallet() {
-    tonConnectUI.openSingleWalletModal(TRUST_WALLET);
+    try {
+      // Use the internal connector to generate the Trust Wallet deep link directly,
+      // bypassing the TonConnect modal. The connector handles the bridge session
+      // so the connection response is still captured by the UI provider.
+      const link = tonConnectUI.connector.connect(TRUST_WALLET);
+      if (window.Telegram?.WebApp?.openLink) {
+        window.Telegram.WebApp.openLink(link, { try_instant_view: false });
+      } else {
+        window.open(link, '_blank');
+      }
+    } catch {
+      // Fallback: open the general modal so the user can still connect
+      tonConnectUI.openModal();
+    }
   }
 
   async function disconnect() {
