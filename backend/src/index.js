@@ -7,8 +7,10 @@ const db = require('./db/database');
 
 const tokenRoutes = require('./routes/tokens');
 const adminRoutes = require('./routes/admin');
+const orderRoutes = require('./routes/orders');
 const { startChartSimulator, seedCandlesForToken } = require('./services/chartSimulator');
 const { startTxSimulator } = require('./services/txSimulator');
+const { startOrderWatcher } = require('./services/orderWatcher');
 const { startBot } = require('./bot');
 
 const app = express();
@@ -23,11 +25,14 @@ app.use(express.json());
 
 app.use('/api/tokens', tokenRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/orders', orderRoutes);
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
 
 io.on('connection', (socket) => {
   socket.on('join-token', (tokenId) => socket.join(`token:${tokenId}`));
   socket.on('leave-token', (tokenId) => socket.leave(`token:${tokenId}`));
+  socket.on('join-wallet', (wallet) => socket.join(`wallet:${wallet}`));
+  socket.on('leave-wallet', (wallet) => socket.leave(`wallet:${wallet}`));
 });
 
 // Auto-seed if database is empty (safe on Railway restarts)
@@ -44,6 +49,7 @@ function autoSeedIfEmpty() {
 autoSeedIfEmpty();
 startChartSimulator(io);
 startTxSimulator(io);
+startOrderWatcher(io);
 startBot(io);
 
 const PORT = process.env.PORT || 3001;

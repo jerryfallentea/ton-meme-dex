@@ -50,6 +50,7 @@ export default function Navbar() {
       </Link>
       <div style={styles.nav_links}>
         <Link to="/" style={styles.link(pathname === '/')}>Markets</Link>
+        <Link to="/portfolio" style={styles.link(pathname === '/portfolio')}>Portfolio</Link>
       </div>
       <WalletButton />
     </nav>

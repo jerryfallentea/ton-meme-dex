@@ -103,6 +103,9 @@ function buildNextCandle(token) {
     token.id
   );
 
+  // Check TP orders whenever price updates
+  if (global._checkTpOrders) global._checkTpOrders(token.id, candle.close);
+
   return candle;
 }
 

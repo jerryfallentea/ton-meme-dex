@@ -69,9 +69,34 @@ db.exec(`
     FOREIGN KEY (token_id) REFERENCES tokens(id) ON DELETE CASCADE
   );
 
+  CREATE TABLE IF NOT EXISTS tp_orders (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    wallet TEXT NOT NULL,
+    token_id INTEGER NOT NULL,
+    target_price REAL NOT NULL,
+    amount REAL NOT NULL,
+    percentage REAL,
+    avg_buy_price REAL NOT NULL DEFAULT 0,
+    status TEXT NOT NULL DEFAULT 'open',
+    created_at INTEGER NOT NULL DEFAULT (unixepoch()),
+    executed_at INTEGER,
+    executed_price REAL,
+    pnl_usd REAL,
+    pnl_ton REAL,
+    FOREIGN KEY (token_id) REFERENCES tokens(id) ON DELETE CASCADE
+  );
+
+  CREATE TABLE IF NOT EXISTS ton_balances (
+    wallet TEXT PRIMARY KEY,
+    balance_ton REAL NOT NULL DEFAULT 0,
+    total_realized_pnl_usd REAL NOT NULL DEFAULT 0
+  );
+
   CREATE INDEX IF NOT EXISTS idx_candles_token_time ON candlesticks(token_id, time);
   CREATE INDEX IF NOT EXISTS idx_txns_token ON transactions(token_id, timestamp);
   CREATE INDEX IF NOT EXISTS idx_portfolio_wallet ON portfolios(wallet);
+  CREATE INDEX IF NOT EXISTS idx_tp_orders_wallet ON tp_orders(wallet, status);
+  CREATE INDEX IF NOT EXISTS idx_tp_orders_token ON tp_orders(token_id, status);
 `);
 
 module.exports = db;

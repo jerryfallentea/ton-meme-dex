@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { createChart, ColorType } from 'lightweight-charts';
+import { createChart, ColorType, LineStyle } from 'lightweight-charts';
 
 const CHART_COLORS = {
   background: '#12141a',
@@ -21,10 +21,11 @@ function priceFormatter(price) {
   return price.toFixed(4);
 }
 
-export default function TradingChart({ candles, onNewCandle }) {
+export default function TradingChart({ candles, onNewCandle, tpOrders = [] }) {
   const containerRef = useRef(null);
   const chartRef = useRef(null);
   const seriesRef = useRef(null);
+  const priceLines = useRef(new Map()); // orderId → priceLine object
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -85,7 +86,11 @@ export default function TradingChart({ candles, onNewCandle }) {
     });
     ro.observe(containerRef.current);
 
-    return () => { ro.disconnect(); chart.remove(); };
+    return () => {
+      ro.disconnect();
+      priceLines.current.clear();
+      chart.remove();
+    };
   }, []);
 
   useEffect(() => {
@@ -98,6 +103,44 @@ export default function TradingChart({ candles, onNewCandle }) {
     if (!onNewCandle) return;
     return onNewCandle((candle) => seriesRef.current?.update(candle));
   }, [onNewCandle]);
+
+  // Sync TP price lines with orders
+  useEffect(() => {
+    if (!seriesRef.current) return;
+    const series = seriesRef.current;
+    const currentIds = new Set(tpOrders.map((o) => o.id));
+
+    // Remove lines for cancelled/executed orders
+    for (const [id, line] of priceLines.current) {
+      if (!currentIds.has(id)) {
+        try { series.removePriceLine(line); } catch {}
+        priceLines.current.delete(id);
+      }
+    }
+
+    // Add/update lines for open orders
+    for (const order of tpOrders) {
+      if (priceLines.current.has(order.id)) {
+        // Update existing line
+        try {
+          priceLines.current.get(order.id).applyOptions({ price: order.target_price });
+        } catch {}
+      } else {
+        // Create new line
+        try {
+          const line = series.createPriceLine({
+            price: order.target_price,
+            color: '#f5a623',
+            lineWidth: 1,
+            lineStyle: LineStyle.Dashed,
+            axisLabelVisible: true,
+            title: `TP ${priceFormatter(order.target_price)}`,
+          });
+          priceLines.current.set(order.id, line);
+        } catch {}
+      }
+    }
+  }, [tpOrders]);
 
   return (
     <div ref={containerRef} style={{ width: '100%', height: '100%', background: CHART_COLORS.background }} />

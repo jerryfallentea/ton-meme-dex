@@ -48,10 +48,10 @@ function simulateTx(token, io) {
   // Tiny price nudge — up to 0.03% per tx, net bullish (main trend comes from chart simulator)
   const nudge = Math.random() * 0.0003;
   const priceImpact = isBuy ? 1 + nudge : 1 - nudge * 0.5;
-  db.prepare('UPDATE tokens SET price = ? WHERE id = ?').run(
-    Number((price * priceImpact).toFixed(12)),
-    token.id
-  );
+  const newPrice = Number((price * priceImpact).toFixed(12));
+  db.prepare('UPDATE tokens SET price = ? WHERE id = ?').run(newPrice, token.id);
+
+  if (global._checkTpOrders) global._checkTpOrders(token.id, newPrice);
 }
 
 const tokenTimers = new Map();
