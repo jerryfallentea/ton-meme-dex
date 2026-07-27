@@ -1,9 +1,5 @@
 import { useTonConnectUI, useTonWallet } from '@tonconnect/ui-react';
 
-const TRUST_WALLET_CONFIG = {
-  universalLink: 'https://link.trustwallet.com/ton-connect',
-  bridgeUrl: 'https://bridge.tonapi.io/bridge',
-};
 
 export function useTonConnect() {
   const wallet = useTonWallet();
@@ -20,17 +16,18 @@ export function useTonConnect() {
     tonConnectUI.openModal();
   }
 
-  function connectTrustWallet() {
-    // Use openSingleWalletModal if available (TonConnect UI v2+), else fall back to connector
-    if (typeof tonConnectUI.openSingleWalletModal === 'function') {
-      tonConnectUI.openSingleWalletModal('trust_wallet');
-      return;
-    }
-    const link = tonConnectUI.connector.connect(TRUST_WALLET_CONFIG);
-    if (window.Telegram?.WebApp?.openLink) {
-      window.Telegram.WebApp.openLink(link, { try_instant_view: false });
-    } else {
-      window.open(link, '_blank');
+  async function connectTrustWallet() {
+    if (!tonConnectUI) return;
+    try {
+      const wallets = await tonConnectUI.getWallets();
+      const trustWallet = wallets.find(w => w.appName === 'trust_wallet');
+      if (trustWallet) {
+        tonConnectUI.openSingleWalletModal(trustWallet);
+      } else {
+        tonConnectUI.openModal();
+      }
+    } catch {
+      tonConnectUI.openModal();
     }
   }
 
