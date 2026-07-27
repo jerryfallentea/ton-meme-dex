@@ -76,6 +76,22 @@ export default function Admin() {
     setMsg('Candles reset!');
   }
 
+  async function setTrend(id, mode) {
+    const r = await fetch(`/api/admin/tokens/${id}/set-trend`, {
+      method: 'POST',
+      headers: headers(),
+      body: JSON.stringify({ mode }),
+    });
+    if (r.ok) {
+      setTokens((prev) => prev.map((t) => {
+        if (t.id !== id) return t;
+        const updated = { ...t, trend_mode: mode };
+        if (mode !== 'bearish') updated.trend_peak_price = null;
+        return updated;
+      }));
+    }
+  }
+
   function startEdit(token) {
     setEditing(token.id);
     setForm({
@@ -176,21 +192,52 @@ export default function Admin() {
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
         {tokens.map((t) => (
-          <div key={t.id} style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '10px', padding: '12px 14px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 600 }}>{t.name} <span style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>({t.symbol})</span></div>
-              <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
-                ${t.price} · vol={t.volatility} · trend={t.trend_strength} ·{' '}
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: t.active ? 'var(--green)' : 'var(--red)' }}>
-                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: t.active ? 'var(--green)' : 'var(--red)', display: 'inline-block' }}/>
-                  {t.active ? 'Active' : 'Inactive'}
-                </span>
+          <div key={t.id} style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '10px', padding: '12px 14px' }}>
+            {/* Token info row */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: 600 }}>{t.name} <span style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>({t.symbol})</span></div>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+                  ${t.price} · vol={t.volatility} · trend={t.trend_strength} ·{' '}
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: t.active ? 'var(--green)' : 'var(--red)' }}>
+                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: t.active ? 'var(--green)' : 'var(--red)', display: 'inline-block' }}/>
+                    {t.active ? 'Active' : 'Inactive'}
+                  </span>
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: '6px' }}>
+                <button onClick={() => startEdit(t)} style={{ padding: '5px 10px', background: 'var(--bg-hover)', border: '1px solid var(--border)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '12px' }}>Edit</button>
+                <button onClick={() => resetCandles(t.id)} style={{ padding: '5px 10px', background: 'var(--bg-hover)', border: '1px solid var(--border)', borderRadius: '6px', color: 'var(--accent)', fontSize: '12px' }}>Reset Chart</button>
+                <button onClick={() => deleteToken(t.id)} style={{ padding: '5px 10px', background: 'rgba(255,68,102,0.1)', border: '1px solid rgba(255,68,102,0.3)', borderRadius: '6px', color: 'var(--red)', fontSize: '12px' }}>Disable</button>
               </div>
             </div>
-            <div style={{ display: 'flex', gap: '6px' }}>
-              <button onClick={() => startEdit(t)} style={{ padding: '5px 10px', background: 'var(--bg-hover)', border: '1px solid var(--border)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '12px' }}>Edit</button>
-              <button onClick={() => resetCandles(t.id)} style={{ padding: '5px 10px', background: 'var(--bg-hover)', border: '1px solid var(--border)', borderRadius: '6px', color: 'var(--accent)', fontSize: '12px' }}>Reset Chart</button>
-              <button onClick={() => deleteToken(t.id)} style={{ padding: '5px 10px', background: 'rgba(255,68,102,0.1)', border: '1px solid rgba(255,68,102,0.3)', borderRadius: '6px', color: 'var(--red)', fontSize: '12px' }}>Disable</button>
+            {/* Trend direction control */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.4px', flexShrink: 0 }}>Trend:</span>
+              {[
+                { mode: 'bullish', label: 'Bullish', color: 'var(--green)', bg: 'rgba(0,208,132,0.15)', border: 'rgba(0,208,132,0.4)' },
+                { mode: 'auto',    label: 'Auto',    color: 'var(--accent)', bg: 'rgba(124,94,247,0.15)', border: 'rgba(124,94,247,0.4)' },
+                { mode: 'bearish', label: 'Bearish', color: 'var(--red)',   bg: 'rgba(255,68,102,0.15)', border: 'rgba(255,68,102,0.4)' },
+              ].map(({ mode, label, color, bg, border }) => {
+                const active = (t.trend_mode || 'auto') === mode;
+                return (
+                  <button key={mode} onClick={() => setTrend(t.id, mode)}
+                    style={{
+                      padding: '4px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: 700,
+                      background: active ? bg : 'var(--bg-hover)',
+                      color: active ? color : 'var(--text-muted)',
+                      border: `1px solid ${active ? border : 'var(--border)'}`,
+                      transition: 'all 0.15s',
+                    }}>
+                    {label}
+                  </button>
+                );
+              })}
+              {t.trend_mode === 'bearish' && t.trend_peak_price && (
+                <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+                  cap ${t.trend_peak_price.toExponential(3)}
+                </span>
+              )}
             </div>
           </div>
         ))}

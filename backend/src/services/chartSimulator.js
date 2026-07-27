@@ -106,26 +106,54 @@ function tickLiveCandle(token) {
   if (!live || !_io) return;
 
   const { id, volatility, trend_strength, pump_chance, candle_interval } = token;
+  const trendMode      = token.trend_mode || 'auto';
+  const trendPeak      = token.trend_peak_price;
   const phaseOffset    = (id * 2.618033988) % (Math.PI * 2);
   const cyclePeriod    = 900 * (30 + ((id * 13) % 38));
   const now            = Math.floor(Date.now() / 1000);
-  const ticksPerCandle = Math.max(candle_interval / 2, 1); // 2-second ticks
+  const ticksPerCandle = Math.max(candle_interval / 2, 1);
 
-  // GBM scaled to tick frequency: std-dev ∝ 1/√N so candle-level σ is preserved
-  const macroDrift = (0.00016 * trend_strength) / ticksPerCandle;
+  let macroDrift, pumpProb, dumpProb;
+
+  if (trendMode === 'bearish') {
+    // Strong negative drift — makes lower lows, no pumps
+    macroDrift = -(0.003 * trend_strength) / ticksPerCandle;
+    pumpProb   = 0;
+    dumpProb   = (pump_chance * 1.8) / ticksPerCandle;
+  } else if (trendMode === 'bullish') {
+    // Strong positive drift — aggressive upward movement
+    macroDrift = (0.004 * trend_strength) / ticksPerCandle;
+    pumpProb   = (pump_chance * 2) / ticksPerCandle;
+    dumpProb   = 0;
+  } else {
+    // Auto: gentle drift, cycle oscillation, balanced events
+    macroDrift = (0.00008 * trend_strength) / ticksPerCandle;
+    pumpProb   = pump_chance / ticksPerCandle;
+    dumpProb   = (pump_chance * 0.60) / ticksPerCandle;
+  }
+
   const cycleVal   = Math.sin((now / cyclePeriod) + phaseOffset);
-  const cycleDrift = (0.0007 * trend_strength * cycleVal) / ticksPerCandle;
-  const noise      = (Math.random() - 0.5) * 2.0 * volatility / Math.sqrt(ticksPerCandle);
-  const pumpProb   = pump_chance / ticksPerCandle;
-  const pump       = Math.random() < pumpProb           ? Math.random() * 0.045 * trend_strength : 0;
-  const dump       = Math.random() < pumpProb * 0.60    ? -(Math.random() * 0.03)               : 0;
+  const cycleDrift = trendMode === 'auto'
+    ? (0.0007 * trend_strength * cycleVal) / ticksPerCandle
+    : 0; // cycle suppressed in manual modes
+
+  const noise  = (Math.random() - 0.5) * 2.0 * volatility / Math.sqrt(ticksPerCandle);
+  const pump   = Math.random() < pumpProb ? Math.random() * 0.045 * trend_strength : 0;
+  const dump   = Math.random() < dumpProb ? -(Math.random() * 0.04)                : 0;
 
   const change   = macroDrift + cycleDrift + noise + pump + dump;
-  const newClose = Math.max(live.close * (1 + change), 0.000001);
+  let   newClose = Math.max(live.close * (1 + change), 0.000001);
+
+  // Bearish hard cap: price must never exceed the peak recorded when bearish was set
+  if (trendMode === 'bearish' && trendPeak && newClose > trendPeak) {
+    newClose = trendPeak;
+  }
 
   live.close = Number(newClose.toFixed(12));
-  live.high  = Math.max(live.high, live.close);
-  live.low   = Math.min(live.low,  live.close);
+  live.high  = trendMode === 'bearish' && trendPeak
+    ? Math.min(Math.max(live.high, live.close), trendPeak)
+    : Math.max(live.high, live.close);
+  live.low   = Math.min(live.low, live.close);
 
   _io.to(`token:${token.id}`).emit('candle-tick', { tokenId: token.id, candle: { ...live } });
 }

@@ -102,5 +102,7 @@ db.exec(`
 // Safe migrations for existing databases
 try { db.exec('ALTER TABLE transactions ADD COLUMN avg_buy_price REAL'); } catch {}
 try { db.exec("ALTER TABLE transactions ADD COLUMN source TEXT NOT NULL DEFAULT 'manual'"); } catch {}
+try { db.exec("ALTER TABLE tokens ADD COLUMN trend_mode TEXT NOT NULL DEFAULT 'auto'"); } catch {}
+try { db.exec('ALTER TABLE tokens ADD COLUMN trend_peak_price REAL'); } catch {}
 
 module.exports = db;

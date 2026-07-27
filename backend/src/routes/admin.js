@@ -115,6 +115,23 @@ router.post('/tokens/:id/reset-candles', (req, res) => {
   res.json({ success: true });
 });
 
+// Set manual trend direction for a token
+router.post('/tokens/:id/set-trend', (req, res) => {
+  const { mode } = req.body;
+  if (!['auto', 'bullish', 'bearish'].includes(mode)) {
+    return res.status(400).json({ error: 'mode must be auto, bullish, or bearish' });
+  }
+  const token = db.prepare('SELECT * FROM tokens WHERE id = ?').get(req.params.id);
+  if (!token) return res.status(404).json({ error: 'Token not found' });
+
+  // Record current price as the peak when switching to bearish
+  const peak = mode === 'bearish' ? token.price : null;
+  db.prepare('UPDATE tokens SET trend_mode = ?, trend_peak_price = ? WHERE id = ?')
+    .run(mode, peak, req.params.id);
+
+  res.json({ success: true, mode, peak });
+});
+
 router.get('/stats', (req, res) => {
   const totalTokens = db.prepare('SELECT COUNT(*) as c FROM tokens WHERE active = 1').get().c;
   const totalTxns = db.prepare('SELECT COUNT(*) as c FROM transactions').get().c;
