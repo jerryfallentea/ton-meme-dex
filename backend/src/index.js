@@ -34,7 +34,7 @@ io.on('connection', (socket) => {
 
 startChartSimulator(io);
 startTxSimulator(io);
-startBot();
+startBot(io);
 
 const PORT = process.env.PORT || 3001;
 server.listen(PORT, () => {
