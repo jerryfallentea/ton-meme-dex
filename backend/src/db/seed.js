@@ -75,9 +75,19 @@ const tokens = [
   },
 ];
 
-db.prepare('DELETE FROM tokens').run();
-db.prepare('DELETE FROM candlesticks').run();
-db.prepare('DELETE FROM transactions').run();
+// SAFE SEED: only inserts tokens that don't exist yet — never deletes anything
+const existing = db.prepare('SELECT COUNT(*) as c FROM tokens').get().c;
+
+if (existing > 0) {
+  console.log(`Database already has ${existing} tokens — skipping seed to protect your data.`);
+  console.log('To force a full reseed, run:  node src/db/seed.js --force');
+  if (!process.argv.includes('--force')) process.exit(0);
+  // --force: wipe and reseed
+  console.log('\nForce flag detected — wiping and reseeding...');
+  db.prepare('DELETE FROM tokens').run();
+  db.prepare('DELETE FROM candlesticks').run();
+  db.prepare('DELETE FROM transactions').run();
+}
 
 const insert = db.prepare(`
   INSERT INTO tokens (name, symbol, image, description, price, initial_price, market_cap, volatility, trend_strength, pump_chance, tx_speed, candle_interval)
