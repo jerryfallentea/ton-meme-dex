@@ -16,16 +16,16 @@ const tabs = [
     label: 'Markets',
   },
   {
-    key: 'trending',
-    path: '/?sort=change',
-    exact: false,
+    key: 'trade',
+    path: null,
     icon: (active) => (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-        <polyline points="2,18 9,11 13,15 22,6" stroke={active ? 'var(--green)' : 'var(--text-muted)'} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-        <polyline points="16,6 22,6 22,12" stroke={active ? 'var(--green)' : 'var(--text-muted)'} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="10" fill={active ? 'var(--green)' : 'var(--bg-hover)'} stroke={active ? 'var(--green)' : 'var(--border)'} strokeWidth="1.5" />
+        <line x1="12" y1="7" x2="12" y2="17" stroke={active ? '#fff' : 'var(--text-muted)'} strokeWidth="2.2" strokeLinecap="round" />
+        <line x1="7" y1="12" x2="17" y2="12" stroke={active ? '#fff' : 'var(--text-muted)'} strokeWidth="2.2" strokeLinecap="round" />
       </svg>
     ),
-    label: 'Trending',
+    label: 'Trade',
   },
   {
     key: 'portfolio',
@@ -56,23 +56,21 @@ const tabs = [
   },
 ];
 
-export default function BottomNav() {
+export default function BottomNav({ onOpenTrade }) {
   const { pathname, search } = useLocation();
   const navigate = useNavigate();
   const { connected, connect, disconnect, shortAddress } = useTonConnect();
 
   function isActive(tab) {
-    if (tab.key === 'trending') return search.includes('sort=change');
+    if (tab.key === 'trade') return false;
     if (tab.key === 'markets') return pathname === '/' && !search.includes('sort=change');
     return tab.exact ? pathname === tab.path : pathname.startsWith(tab.path);
   }
 
   function handleTab(tab) {
-    if (tab.key === 'wallet') {
-      connected ? disconnect() : connect();
-    } else {
-      navigate(tab.path);
-    }
+    if (tab.key === 'trade')  return onOpenTrade?.();
+    if (tab.key === 'wallet') return connected ? disconnect() : connect();
+    navigate(tab.path);
   }
 
   return (
@@ -86,9 +84,8 @@ export default function BottomNav() {
     }}>
       {tabs.map((tab) => {
         const active = isActive(tab);
-        const label = tab.key === 'wallet'
-          ? (connected ? shortAddress : 'Wallet')
-          : tab.label;
+        const label  = tab.key === 'wallet' ? (connected ? shortAddress : 'Wallet') : tab.label;
+        const color  = tab.key === 'wallet' ? 'var(--ton)' : tab.key === 'trade' ? 'var(--green)' : 'var(--accent)';
 
         return (
           <button
@@ -110,22 +107,15 @@ export default function BottomNav() {
           >
             {active && (
               <div style={{
-                position: 'absolute',
-                top: 0,
-                left: '20%',
-                right: '20%',
-                height: '2px',
-                borderRadius: '0 0 2px 2px',
-                background: tab.key === 'wallet' ? 'var(--ton)' : tab.key === 'trending' ? 'var(--green)' : 'var(--accent)',
+                position: 'absolute', top: 0, left: '20%', right: '20%',
+                height: '2px', borderRadius: '0 0 2px 2px', background: color,
               }} />
             )}
             {tab.icon(active)}
             <span style={{
               fontSize: '10px',
               fontWeight: active ? 700 : 500,
-              color: active
-                ? (tab.key === 'wallet' ? 'var(--ton)' : tab.key === 'trending' ? 'var(--green)' : 'var(--accent)')
-                : 'var(--text-muted)',
+              color: active ? color : 'var(--text-muted)',
               letterSpacing: '0.2px',
             }}>
               {label}

@@ -1,17 +1,19 @@
+import { useState } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { TonConnectUIProvider } from '@tonconnect/ui-react';
 import Navbar from './components/Navbar';
 import BottomNav from './components/BottomNav';
+import TradeModal from './components/TradeModal';
 import Home from './pages/Home';
 import TokenDetail from './pages/TokenDetail';
 import Portfolio from './pages/Portfolio';
 
 const MANIFEST_URL = `${window.location.origin}/tonconnect-manifest.json`;
 
-// Hide bottom nav on token detail (it has its own bottom bar)
 function Layout() {
   const { pathname } = useLocation();
   const isTokenPage = pathname.startsWith('/token/');
+  const [tradeOpen, setTradeOpen] = useState(false);
 
   return (
     <>
@@ -24,7 +26,8 @@ function Layout() {
           <Route path="*" element={<Home />} />
         </Routes>
       </div>
-      {!isTokenPage && <BottomNav />}
+      {!isTokenPage && <BottomNav onOpenTrade={() => setTradeOpen(true)} />}
+      {tradeOpen && <TradeModal onClose={() => setTradeOpen(false)} />}
     </>
   );
 }
