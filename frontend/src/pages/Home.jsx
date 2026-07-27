@@ -5,13 +5,23 @@ import TokenCard from '../components/TokenCard';
 const styles = {
   page: { padding: '16px', maxWidth: '600px', margin: '0 auto' },
   header: { marginBottom: '20px' },
-  title: { fontSize: '22px', fontWeight: 700, marginBottom: '4px' },
+  titleRow: { display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' },
+  pulse: {
+    width: '8px', height: '8px', borderRadius: '50%',
+    background: 'var(--accent)',
+    boxShadow: '0 0 0 0 var(--accent)',
+    animation: 'pulse 2s infinite',
+    flexShrink: 0,
+  },
+  title: { fontSize: '22px', fontWeight: 700 },
   subtitle: { color: 'var(--text-secondary)', fontSize: '13px' },
+  searchWrap: { position: 'relative', marginBottom: '16px' },
+  searchIcon: { position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' },
   search: {
-    width: '100%', padding: '10px 14px',
+    width: '100%', padding: '10px 14px 10px 36px',
     background: 'var(--bg-card)', border: '1px solid var(--border)',
     borderRadius: '10px', color: 'var(--text-primary)',
-    fontSize: '13px', marginBottom: '16px',
+    fontSize: '13px',
   },
   tabs: { display: 'flex', gap: '4px', marginBottom: '16px' },
   tab: (active) => ({
@@ -24,28 +34,27 @@ const styles = {
   list: { display: 'flex', flexDirection: 'column', gap: '8px' },
   loading: { textAlign: 'center', padding: '48px', color: 'var(--text-muted)' },
   empty: { textAlign: 'center', padding: '48px', color: 'var(--text-muted)' },
-  statsBar: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(3, 1fr)',
-    gap: '8px',
-    marginBottom: '20px',
-  },
-  statCard: {
-    background: 'var(--bg-card)',
-    border: '1px solid var(--border)',
-    borderRadius: '10px',
-    padding: '10px 12px',
-  },
+  statsBar: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginBottom: '20px' },
+  statCard: { background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '10px', padding: '10px 12px' },
   statLabel: { fontSize: '11px', color: 'var(--text-muted)', marginBottom: '2px' },
   statValue: { fontSize: '15px', fontWeight: 700, fontFamily: 'var(--font-mono)' },
 };
 
+function SearchIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+      <circle cx="11" cy="11" r="8" stroke="var(--text-muted)" strokeWidth="1.8"/>
+      <path d="M21 21l-4.35-4.35" stroke="var(--text-muted)" strokeWidth="1.8" strokeLinecap="round"/>
+    </svg>
+  );
+}
+
 export default function Home() {
   const [searchParams] = useSearchParams();
-  const [tokens, setTokens] = useState([]);
+  const [tokens, setTokens]   = useState([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
-  const [sort, setSort] = useState(searchParams.get('sort') || 'mc');
+  const [search, setSearch]   = useState('');
+  const [sort, setSort]       = useState(searchParams.get('sort') || 'mc');
 
   useEffect(() => {
     fetch('/api/tokens')
@@ -67,9 +76,9 @@ export default function Home() {
       return t.name.toLowerCase().includes(q) || t.symbol.toLowerCase().includes(q);
     })
     .sort((a, b) => {
-      if (sort === 'mc') return b.market_cap - a.market_cap;
-      if (sort === 'change') return b.change_24h - a.change_24h;
-      if (sort === 'vol') return b.volume_24h - a.volume_24h;
+      if (sort === 'mc')     return b.market_cap - a.market_cap;
+      if (sort === 'change') return b.change_24h  - a.change_24h;
+      if (sort === 'vol')    return b.volume_24h  - a.volume_24h;
       return 0;
     });
 
@@ -85,7 +94,10 @@ export default function Home() {
   return (
     <div style={styles.page}>
       <div style={styles.header}>
-        <div style={styles.title}>🔥 TON Meme Coins</div>
+        <div style={styles.titleRow}>
+          <div style={styles.pulse} />
+          <div style={styles.title}>TON Meme Coins</div>
+        </div>
         <div style={styles.subtitle}>The hottest meme coins on the TON network</div>
       </div>
 
@@ -106,12 +118,15 @@ export default function Home() {
         </div>
       )}
 
-      <input
-        style={styles.search}
-        placeholder="🔍 Search tokens…"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-      />
+      <div style={styles.searchWrap}>
+        <span style={styles.searchIcon}><SearchIcon /></span>
+        <input
+          style={styles.search}
+          placeholder="Search tokens…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+      </div>
 
       <div style={styles.tabs}>
         {[['mc', 'Market Cap'], ['change', '24h Change'], ['vol', 'Volume']].map(([key, label]) => (

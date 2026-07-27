@@ -173,8 +173,9 @@ export default function TokenDetail() {
       {/* My Position (if wallet connected and has holding) */}
       {connected && hasPosition && (
         <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border)', background: 'rgba(124,94,247,0.06)' }}>
-          <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--accent)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
-            📊 My Position
+          <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--accent)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><rect x="3" y="14" width="4" height="7" rx="1" fill="var(--accent)"/><rect x="10" y="9" width="4" height="12" rx="1" fill="var(--accent)"/><rect x="17" y="4" width="4" height="17" rx="1" fill="var(--accent)"/></svg>
+            My Position
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px', marginBottom: '8px' }}>
             {[
@@ -196,9 +197,10 @@ export default function TokenDetail() {
           </div>
           <button
             onClick={() => { setEditOrder(null); setShowTpModal(true); }}
-            style={{ width: '100%', padding: '9px', borderRadius: '8px', fontWeight: 700, fontSize: '13px', background: 'rgba(245,166,35,0.15)', color: '#f5a623', border: '1px solid rgba(245,166,35,0.4)' }}
+            style={{ width: '100%', padding: '9px', borderRadius: '8px', fontWeight: 700, fontSize: '13px', background: 'rgba(245,166,35,0.15)', color: '#f5a623', border: '1px solid rgba(245,166,35,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px' }}
           >
-            🎯 Set Take-Profit Target
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#f5a623" strokeWidth="1.5"/><circle cx="12" cy="12" r="4" stroke="#f5a623" strokeWidth="1.5"/><line x1="12" y1="3" x2="12" y2="7" stroke="#f5a623" strokeWidth="1.5" strokeLinecap="round"/><line x1="12" y1="17" x2="12" y2="21" stroke="#f5a623" strokeWidth="1.5" strokeLinecap="round"/><line x1="3" y1="12" x2="7" y2="12" stroke="#f5a623" strokeWidth="1.5" strokeLinecap="round"/><line x1="17" y1="12" x2="21" y2="12" stroke="#f5a623" strokeWidth="1.5" strokeLinecap="round"/></svg>
+            Set Take-Profit Target
           </button>
         </div>
       )}
@@ -206,8 +208,9 @@ export default function TokenDetail() {
       {/* Active TP Orders */}
       {tpOrders.length > 0 && (
         <div style={{ borderBottom: '1px solid var(--border)' }}>
-          <div style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)', fontSize: '11px', fontWeight: 700, color: '#f5a623', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
-            🎯 Active Take-Profit Orders
+          <div style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)', fontSize: '11px', fontWeight: 700, color: '#f5a623', textTransform: 'uppercase', letterSpacing: '0.4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#f5a623" strokeWidth="1.8"/><circle cx="12" cy="12" r="4" stroke="#f5a623" strokeWidth="1.8"/><circle cx="12" cy="12" r="1.5" fill="#f5a623"/></svg>
+            Active Take-Profit Orders
           </div>
           {tpOrders.map((order) => {
             const pnlPct = order.avg_buy_price ? ((order.target_price - order.avg_buy_price) / order.avg_buy_price * 100) : 0;
@@ -252,8 +255,9 @@ export default function TokenDetail() {
 
       {/* Transactions */}
       <div style={{ borderBottom: '1px solid var(--border)' }}>
-        <div style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)', fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-          🔄 Live Transactions
+        <div style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)', fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12" stroke="var(--text-secondary)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          Live Transactions
         </div>
         <TransactionFeed txns={txns} symbol={token.symbol} newestId={newestTxId} />
       </div>
@@ -264,8 +268,9 @@ export default function TokenDetail() {
           Buy
         </button>
         {hasPosition && (
-          <button onClick={() => { setEditOrder(null); setShowTpModal(true); }} style={{ flex: 1, padding: '13px', borderRadius: '10px', fontWeight: 700, fontSize: '14px', background: 'rgba(245,166,35,0.15)', color: '#f5a623', border: '1px solid rgba(245,166,35,0.4)' }}>
-            TP
+          <button onClick={() => { setEditOrder(null); setShowTpModal(true); }} style={{ flex: 1, padding: '13px', borderRadius: '10px', fontWeight: 700, fontSize: '12px', background: 'rgba(245,166,35,0.15)', color: '#f5a623', border: '1px solid rgba(245,166,35,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#f5a623" strokeWidth="1.8"/><circle cx="12" cy="12" r="4" stroke="#f5a623" strokeWidth="1.8"/><circle cx="12" cy="12" r="1.5" fill="#f5a623"/></svg>
+            Target
           </button>
         )}
         <button onClick={() => setShowModal('sell')} style={{ flex: 2, padding: '13px', borderRadius: '10px', fontWeight: 700, fontSize: '14px', background: 'var(--red)', color: '#fff' }}>

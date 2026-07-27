@@ -57,7 +57,14 @@ export default function Portfolio() {
   if (!connected) {
     return (
       <div style={{ maxWidth: '480px', margin: '80px auto', padding: '24px', textAlign: 'center' }}>
-        <div style={{ fontSize: '48px', marginBottom: '16px' }}>👛</div>
+        <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'center' }}>
+          <svg width="56" height="56" viewBox="0 0 24 24" fill="none">
+            <rect x="2" y="6" width="20" height="14" rx="2" stroke="var(--accent)" strokeWidth="1.5"/>
+            <path d="M2 10h20" stroke="var(--accent)" strokeWidth="1.5"/>
+            <circle cx="16" cy="15" r="1.5" fill="var(--accent)"/>
+            <path d="M6 6V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1" stroke="var(--accent)" strokeWidth="1.5" strokeLinecap="round"/>
+          </svg>
+        </div>
         <div style={{ fontWeight: 700, fontSize: '20px', marginBottom: '8px' }}>Connect Your Wallet</div>
         <div style={{ color: 'var(--text-secondary)', marginBottom: '24px', fontSize: '14px' }}>
           Connect your Tonkeeper wallet to view your positions, PnL, and take-profit orders.
@@ -92,7 +99,10 @@ export default function Portfolio() {
       {/* TP Executed Notification */}
       {notification && (
         <div className="slide-in" style={{ padding: '12px 16px', background: 'rgba(0,208,132,0.1)', border: '1px solid var(--green)', borderRadius: '10px', marginBottom: '16px' }}>
-          <div style={{ fontWeight: 700, color: 'var(--green)', marginBottom: '4px' }}>🎯 Take-Profit Executed!</div>
+          <div style={{ fontWeight: 700, color: 'var(--green)', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '7px' }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="var(--green)" strokeWidth="1.5"/><path d="M8 12l3 3 5-6" stroke="var(--green)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            Take-Profit Executed
+          </div>
           <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
             Sold {notification.amount} {notification.symbol} @ ${notification.executed_price?.toExponential(3)}
           </div>
@@ -107,7 +117,10 @@ export default function Portfolio() {
 
       {/* Header */}
       <div style={{ marginBottom: '16px' }}>
-        <div style={{ fontSize: '20px', fontWeight: 700, marginBottom: '2px' }}>📊 My Portfolio</div>
+        <div style={{ fontSize: '20px', fontWeight: 700, marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '9px' }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="14" width="4" height="7" rx="1" fill="var(--accent)"/><rect x="10" y="9" width="4" height="12" rx="1" fill="var(--accent)"/><rect x="17" y="4" width="4" height="17" rx="1" fill="var(--accent)"/></svg>
+            My Portfolio
+          </div>
         <div style={{ fontSize: '12px', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>{shortAddress}</div>
       </div>
 
@@ -232,12 +245,11 @@ export default function Portfolio() {
                         {o.image && <img src={o.image} style={{ width: '24px', height: '24px', borderRadius: '50%' }} />}
                         <div style={{ fontWeight: 700 }}>{o.name} <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>({o.symbol})</span></div>
                       </div>
-                      <span style={{
-                        fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '4px',
-                        background: isTP ? 'rgba(245,166,35,0.15)' : 'rgba(255,68,102,0.12)',
-                        color: isTP ? '#f5a623' : 'var(--red)',
-                      }}>
-                        {isTP ? '🎯 TP' : '💸 Sold'}
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '4px', background: isTP ? 'rgba(245,166,35,0.15)' : 'rgba(255,68,102,0.12)', color: isTP ? '#f5a623' : 'var(--red)' }}>
+                        {isTP
+                          ? <><svg width="10" height="10" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#f5a623" strokeWidth="2"/><circle cx="12" cy="12" r="4" stroke="#f5a623" strokeWidth="2"/><circle cx="12" cy="12" r="1.5" fill="#f5a623"/></svg> TP</>
+                          : <><svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M19 12l-7 7-7-7" stroke="var(--red)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg> Sold</>
+                        }
                       </span>
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px', fontSize: '11px' }}>

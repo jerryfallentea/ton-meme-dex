@@ -25,6 +25,22 @@ const sheet = {
   animation: 'slideIn 0.25s ease',
 };
 
+function ArrowUpIcon() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+      <path d="M12 19V5M5 12l7-7 7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+}
+
+function ArrowDownIcon() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+      <path d="M12 5v14M19 12l-7 7-7-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+}
+
 export default function BuySellModal({ token, portfolio, onClose, onSuccess }) {
   const { connected, address, connect } = useTonConnect();
   const [tab, setTab]         = useState('buy');
@@ -39,7 +55,6 @@ export default function BuySellModal({ token, portfolio, onClose, onSuccess }) {
     ? ((tonBalance * TON_PRICE) / price)
     : 0;
 
-  // Fetch TON balance so buy Max can use it
   useEffect(() => {
     if (!connected || !address) return;
     fetch(`${API}/api/orders/wallet/${address}`)
@@ -72,7 +87,8 @@ export default function BuySellModal({ token, portfolio, onClose, onSuccess }) {
   }
 
   const tabStyle = (active, color) => ({
-    flex: 1, padding: '10px', borderRadius: '8px', fontWeight: 700, fontSize: '14px',
+    flex: 1, padding: '10px', borderRadius: '8px', fontWeight: 700, fontSize: '13px',
+    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
     background: active ? color : 'transparent',
     color: active ? '#fff' : 'var(--text-secondary)',
     border: `1px solid ${active ? color : 'var(--border)'}`,
@@ -90,27 +106,34 @@ export default function BuySellModal({ token, portfolio, onClose, onSuccess }) {
   return (
     <div style={overlay} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div style={sheet}>
+        {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <div style={{ fontWeight: 700, fontSize: '16px' }}>
-            {tab === 'buy' ? '🛒 Buy' : '💸 Sell'} {token?.symbol}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700, fontSize: '16px' }}>
+            {tab === 'buy' ? <ArrowUpIcon /> : <ArrowDownIcon />}
+            {tab === 'buy' ? 'Buy' : 'Sell'} {token?.symbol}
           </div>
           <button onClick={onClose} style={{ color: 'var(--text-secondary)', background: 'none', fontSize: '20px', lineHeight: 1 }}>×</button>
         </div>
 
+        {/* Tabs */}
         <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
-          <button style={tabStyle(tab === 'buy', 'var(--green)')} onClick={() => { setTab('buy'); setAmount(''); setError(''); }}>Buy</button>
-          <button style={tabStyle(tab === 'sell', 'var(--red)')} onClick={() => { setTab('sell'); setAmount(''); setError(''); }}>Sell</button>
+          <button style={tabStyle(tab === 'buy', 'var(--green)')} onClick={() => { setTab('buy'); setAmount(''); setError(''); }}>
+            <ArrowUpIcon /> Buy
+          </button>
+          <button style={tabStyle(tab === 'sell', 'var(--red)')} onClick={() => { setTab('sell'); setAmount(''); setError(''); }}>
+            <ArrowDownIcon /> Sell
+          </button>
         </div>
 
+        {/* Price */}
         <div style={{ marginBottom: '8px', fontSize: '12px', color: 'var(--text-secondary)' }}>
           Current Price: <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-primary)' }}>${formatPrice(price)}</span>
         </div>
 
+        {/* Amount input */}
         <div style={{ marginBottom: '14px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-            <label style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
-              Amount ({token?.symbol})
-            </label>
+            <label style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Amount ({token?.symbol})</label>
             {tab === 'sell' && holding > 0 && (
               <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
                 Balance: <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)' }}>
@@ -138,51 +161,40 @@ export default function BuySellModal({ token, portfolio, onClose, onSuccess }) {
                 borderRadius: '8px', color: 'var(--text-primary)', fontSize: '14px',
               }}
             />
-            {/* Max button */}
             {tab === 'sell' && holding > 0 && (
-              <button
-                onClick={() => setAmount(String(holding))}
-                style={{
-                  padding: '10px 14px', borderRadius: '8px', fontWeight: 700, fontSize: '13px',
-                  background: 'rgba(255,68,102,0.12)', color: 'var(--red)',
-                  border: '1px solid rgba(255,68,102,0.35)', flexShrink: 0,
-                }}
-              >Max</button>
+              <button onClick={() => setAmount(String(holding))}
+                style={{ padding: '10px 14px', borderRadius: '8px', fontWeight: 700, fontSize: '13px', background: 'rgba(255,68,102,0.12)', color: 'var(--red)', border: '1px solid rgba(255,68,102,0.35)', flexShrink: 0 }}>
+                Max
+              </button>
             )}
             {tab === 'buy' && maxBuyTokens > 0 && (
-              <button
-                onClick={() => setAmount(maxBuyTokens.toFixed(2))}
-                style={{
-                  padding: '10px 14px', borderRadius: '8px', fontWeight: 700, fontSize: '13px',
-                  background: 'rgba(0,208,132,0.12)', color: 'var(--green)',
-                  border: '1px solid rgba(0,208,132,0.35)', flexShrink: 0,
-                }}
-              >Max</button>
+              <button onClick={() => setAmount(maxBuyTokens.toFixed(2))}
+                style={{ padding: '10px 14px', borderRadius: '8px', fontWeight: 700, fontSize: '13px', background: 'rgba(0,208,132,0.12)', color: 'var(--green)', border: '1px solid rgba(0,208,132,0.35)', flexShrink: 0 }}>
+                Max
+              </button>
             )}
           </div>
         </div>
 
-        {/* Quick % presets for sell */}
+        {/* Sell % presets */}
         {tab === 'sell' && holding > 0 && (
           <div style={{ display: 'flex', gap: '6px', marginBottom: '14px' }}>
             {[25, 50, 75].map((pct) => {
-              const qty = (holding * pct) / 100;
+              const qty    = (holding * pct) / 100;
               const active = amount === String(qty) || amount === qty.toFixed(2);
               return (
-                <button key={pct} onClick={() => setAmount(qty.toFixed(2))}
-                  style={presetBtn(active, 'var(--red)')}>
+                <button key={pct} onClick={() => setAmount(qty.toFixed(2))} style={presetBtn(active, 'var(--red)')}>
                   {pct}%
                 </button>
               );
             })}
-            <button
-              onClick={() => setAmount(String(holding))}
-              style={presetBtn(amount === String(holding), 'var(--red)')}>
+            <button onClick={() => setAmount(String(holding))} style={presetBtn(amount === String(holding), 'var(--red)')}>
               Max
             </button>
           </div>
         )}
 
+        {/* Summary */}
         {amount && (
           <div style={{ padding: '10px 12px', background: 'var(--bg-card)', borderRadius: '8px', marginBottom: '16px', fontSize: '13px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -206,8 +218,7 @@ export default function BuySellModal({ token, portfolio, onClose, onSuccess }) {
           </div>
         )}
 
-        <button
-          onClick={handleTrade} disabled={loading}
+        <button onClick={handleTrade} disabled={loading}
           style={{
             width: '100%', padding: '13px', borderRadius: '10px',
             fontWeight: 700, fontSize: '15px',
@@ -215,7 +226,10 @@ export default function BuySellModal({ token, portfolio, onClose, onSuccess }) {
             color: '#fff', opacity: loading ? 0.6 : 1, transition: 'all 0.15s',
           }}
         >
-          {loading ? 'Processing…' : connected ? `${tab === 'buy' ? 'Buy' : 'Sell'} ${token?.symbol}` : 'Connect Wallet to Trade'}
+          {loading ? 'Processing…'
+            : connected
+              ? `${tab === 'buy' ? 'Buy' : 'Sell'} ${token?.symbol}`
+              : 'Connect Wallet to Trade'}
         </button>
       </div>
     </div>
