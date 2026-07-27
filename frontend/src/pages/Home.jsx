@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import TokenCard from '../components/TokenCard';
 
 const styles = {
@@ -40,10 +41,11 @@ const styles = {
 };
 
 export default function Home() {
+  const [searchParams] = useSearchParams();
   const [tokens, setTokens] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [sort, setSort] = useState('mc');
+  const [sort, setSort] = useState(searchParams.get('sort') || 'mc');
 
   useEffect(() => {
     fetch('/api/tokens')
