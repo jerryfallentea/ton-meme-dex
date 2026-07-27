@@ -241,7 +241,13 @@ export default function TokenDetail() {
 
       {/* Chart */}
       <div style={{ height: '240px', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
-        <TradingChart candles={candles} onNewCandle={registerCandleCallback} onCandleTick={registerTickCallback} tpOrders={tpOrders} />
+        <TradingChart
+          candles={candles}
+          onNewCandle={registerCandleCallback}
+          onCandleTick={registerTickCallback}
+          tpOrders={tpOrders}
+          entryPrice={portfolio?.balance > 0 ? portfolio.avg_buy_price : null}
+        />
       </div>
 
       {/* Transactions */}

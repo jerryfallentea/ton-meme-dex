@@ -21,11 +21,12 @@ function priceFormatter(price) {
   return price.toFixed(4);
 }
 
-export default function TradingChart({ candles, onNewCandle, onCandleTick, tpOrders = [] }) {
+export default function TradingChart({ candles, onNewCandle, onCandleTick, tpOrders = [], entryPrice = null }) {
   const containerRef = useRef(null);
   const chartRef = useRef(null);
   const seriesRef = useRef(null);
   const priceLines = useRef(new Map()); // orderId → priceLine object
+  const entryLine  = useRef(null);       // single entry price line
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -89,6 +90,7 @@ export default function TradingChart({ candles, onNewCandle, onCandleTick, tpOrd
     return () => {
       ro.disconnect();
       priceLines.current.clear();
+      entryLine.current = null;
       chart.remove();
     };
   }, []);
@@ -109,6 +111,34 @@ export default function TradingChart({ candles, onNewCandle, onCandleTick, tpOrd
     if (!onCandleTick) return;
     return onCandleTick((candle) => seriesRef.current?.update(candle));
   }, [onCandleTick]);
+
+  // Entry price line — shows user's avg buy price on the chart
+  useEffect(() => {
+    if (!seriesRef.current) return;
+    const series = seriesRef.current;
+
+    if (entryPrice && entryPrice > 0) {
+      if (entryLine.current) {
+        try { entryLine.current.applyOptions({ price: entryPrice }); } catch {}
+      } else {
+        try {
+          entryLine.current = series.createPriceLine({
+            price: entryPrice,
+            color: '#4dabf7',
+            lineWidth: 1,
+            lineStyle: LineStyle.Solid,
+            axisLabelVisible: true,
+            title: 'Entry',
+          });
+        } catch {}
+      }
+    } else {
+      if (entryLine.current) {
+        try { series.removePriceLine(entryLine.current); } catch {}
+        entryLine.current = null;
+      }
+    }
+  }, [entryPrice]);
 
   // Sync TP price lines with orders
   useEffect(() => {
