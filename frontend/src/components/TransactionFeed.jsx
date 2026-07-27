@@ -102,7 +102,7 @@ function TxRow({ tx, isNew }) {
 
 export default function TransactionFeed({ txns = [], symbol = '', newestId }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div>
       <div style={headerStyle}>
         <span>Side</span>
         <span>Time</span>
@@ -111,14 +111,12 @@ export default function TransactionFeed({ txns = [], symbol = '', newestId }) {
         <span>TON</span>
         <span>Wallet</span>
       </div>
-      <div style={{ flex: 1, overflowY: 'auto' }}>
-        {txns.length === 0
-          ? <div style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)', fontSize: '13px' }}>
-              Waiting for transactions…
-            </div>
-          : txns.map((tx) => <TxRow key={tx.id} tx={tx} isNew={tx.id === newestId} />)
-        }
-      </div>
+      {txns.length === 0
+        ? <div style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)', fontSize: '13px' }}>
+            Waiting for transactions…
+          </div>
+        : txns.map((tx) => <TxRow key={tx.id} tx={tx} isNew={tx.id === newestId} />)
+      }
     </div>
   );
 }

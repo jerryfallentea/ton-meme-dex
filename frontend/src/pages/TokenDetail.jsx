@@ -91,7 +91,7 @@ export default function TokenDetail() {
   ];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 52px)' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: 'calc(100vh - 52px)', paddingBottom: '74px' }}>
       {/* Header */}
       <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border)', background: 'var(--bg-secondary)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
@@ -124,22 +124,25 @@ export default function TokenDetail() {
       </div>
 
       {/* Chart */}
-      <div style={{ flex: '0 0 260px', borderBottom: '1px solid var(--border)' }}>
+      <div style={{ height: '240px', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
         <TradingChart candles={candles} onNewCandle={registerCandleCallback} />
       </div>
 
-      {/* Tabs: Transactions */}
-      <div style={{ flex: 1, overflowY: 'hidden', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)', fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+      {/* Transactions — natural height, scrolls with page */}
+      <div style={{ borderBottom: '1px solid var(--border)' }}>
+        <div style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)', fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
           🔄 Live Transactions
         </div>
-        <div style={{ flex: 1, overflowY: 'auto' }}>
-          <TransactionFeed txns={txns} symbol={token.symbol} newestId={newestTxId} />
-        </div>
+        <TransactionFeed txns={txns} symbol={token.symbol} newestId={newestTxId} />
       </div>
 
-      {/* Buy / Sell buttons */}
-      <div style={{ padding: '12px 16px', borderTop: '1px solid var(--border)', display: 'flex', gap: '10px', background: 'var(--bg-secondary)' }}>
+      {/* Buy / Sell — sticky at bottom */}
+      <div style={{
+        position: 'fixed', bottom: 0, left: 0, right: 0,
+        padding: '10px 14px', display: 'flex', gap: '10px',
+        background: 'var(--bg-secondary)', borderTop: '1px solid var(--border)',
+        zIndex: 50,
+      }}>
         <button
           onClick={() => setShowModal('buy')}
           style={{ flex: 1, padding: '13px', borderRadius: '10px', fontWeight: 700, fontSize: '15px', background: 'var(--green)', color: '#fff' }}
