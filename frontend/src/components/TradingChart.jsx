@@ -12,6 +12,15 @@ const CHART_COLORS = {
   wickDown: '#ff4466',
 };
 
+function priceFormatter(price) {
+  if (!price || price === 0) return '0';
+  if (price < 0.000001) return price.toExponential(3);
+  if (price < 0.0001) return price.toFixed(8);
+  if (price < 0.01) return price.toFixed(6);
+  if (price < 1) return price.toFixed(5);
+  return price.toFixed(4);
+}
+
 export default function TradingChart({ candles, onNewCandle }) {
   const containerRef = useRef(null);
   const chartRef = useRef(null);
@@ -37,7 +46,8 @@ export default function TradingChart({ candles, onNewCandle }) {
       },
       rightPriceScale: {
         borderColor: CHART_COLORS.border,
-        scaleMargins: { top: 0.1, bottom: 0.2 },
+        scaleMargins: { top: 0.08, bottom: 0.15 },
+        minimumWidth: 90,
       },
       timeScale: {
         borderColor: CHART_COLORS.border,
@@ -55,6 +65,11 @@ export default function TradingChart({ candles, onNewCandle }) {
       borderDownColor: CHART_COLORS.downColor,
       wickUpColor: CHART_COLORS.wickUp,
       wickDownColor: CHART_COLORS.wickDown,
+      priceFormat: {
+        type: 'custom',
+        minMove: 0.000000001,
+        formatter: priceFormatter,
+      },
     });
 
     chartRef.current = chart;
@@ -70,10 +85,7 @@ export default function TradingChart({ candles, onNewCandle }) {
     });
     ro.observe(containerRef.current);
 
-    return () => {
-      ro.disconnect();
-      chart.remove();
-    };
+    return () => { ro.disconnect(); chart.remove(); };
   }, []);
 
   useEffect(() => {
@@ -84,15 +96,10 @@ export default function TradingChart({ candles, onNewCandle }) {
 
   useEffect(() => {
     if (!onNewCandle) return;
-    return onNewCandle((candle) => {
-      seriesRef.current?.update(candle);
-    });
+    return onNewCandle((candle) => seriesRef.current?.update(candle));
   }, [onNewCandle]);
 
   return (
-    <div
-      ref={containerRef}
-      style={{ width: '100%', height: '100%', background: CHART_COLORS.background }}
-    />
+    <div ref={containerRef} style={{ width: '100%', height: '100%', background: CHART_COLORS.background }} />
   );
 }

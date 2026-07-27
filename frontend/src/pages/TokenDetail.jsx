@@ -76,35 +76,48 @@ export default function TokenDetail() {
   if (!token || token.error) return <div style={{ textAlign: 'center', padding: '80px', color: 'var(--text-muted)' }}>Token not found</div>;
 
   const change = Number(token.change_24h);
+  const TON_PRICE = 5.2;
+  const priceInTon = price ? (price / TON_PRICE).toFixed(8) : '—';
+  const ath = candles.length ? Math.max(...candles.map(c => c.high)) : price;
+  const liquidity = token.market_cap ? fmtMC(token.market_cap * 0.15) : '—';
+
+  const stats = [
+    ['Market Cap', fmtMC(token.market_cap)],
+    ['24h Volume', fmtMC(token.volume_24h || 0)],
+    ['Liquidity', liquidity],
+    ['ATH', `$${fmt(ath)}`],
+    ['Holders', Number(token.holders || 0).toLocaleString()],
+    ['Price/TON', `${priceInTon} TON`],
+  ];
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 52px)' }}>
       {/* Header */}
-      <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)', background: 'var(--bg-secondary)' }}>
+      <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border)', background: 'var(--bg-secondary)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
           <button onClick={() => navigate('/')} style={{ color: 'var(--text-secondary)', background: 'none', fontSize: '18px' }}>←</button>
-          {token.image && <img src={token.image} alt={token.symbol} style={{ width: '32px', height: '32px', borderRadius: '50%' }} />}
+          {token.image
+            ? <img src={token.image} alt={token.symbol} style={{ width: '34px', height: '34px', borderRadius: '50%' }} />
+            : <div style={{ width: '34px', height: '34px', borderRadius: '50%', background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: '#fff' }}>{token.symbol[0]}</div>
+          }
           <div>
-            <div style={{ fontWeight: 700, fontSize: '16px' }}>{token.name}</div>
-            <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{token.symbol} · TON</div>
+            <div style={{ fontWeight: 700, fontSize: '15px' }}>{token.name}</div>
+            <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{token.symbol} · TON Network</div>
           </div>
           <div style={{ marginLeft: 'auto', textAlign: 'right' }}>
-            <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '18px' }}>${fmt(price)}</div>
-            <div style={{ fontSize: '12px', fontWeight: 600, color: change >= 0 ? 'var(--green)' : 'var(--red)' }}>
-              {change >= 0 ? '▲' : '▼'} {Math.abs(change).toFixed(2)}%
+            <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '20px', color: 'var(--text-primary)' }}>${fmt(price)}</div>
+            <div style={{ fontSize: '13px', fontWeight: 700, color: change >= 0 ? 'var(--green)' : 'var(--red)', marginTop: '1px' }}>
+              {change >= 0 ? '▲' : '▼'} {Math.abs(change).toFixed(2)}% <span style={{ fontSize: '10px', fontWeight: 400, color: 'var(--text-muted)' }}>(24h)</span>
             </div>
+            <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginTop: '1px' }}>{priceInTon} TON</div>
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
-          {[
-            ['Market Cap', fmtMC(token.market_cap)],
-            ['24h Volume', fmtMC(token.volume_24h)],
-            ['Holders', Number(token.holders).toLocaleString()],
-          ].map(([label, val]) => (
-            <div key={label} style={{ background: 'var(--bg-card)', borderRadius: '8px', padding: '6px 8px' }}>
-              <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>{label}</div>
-              <div style={{ fontSize: '13px', fontWeight: 600, fontFamily: 'var(--font-mono)' }}>{val}</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '5px' }}>
+          {stats.map(([label, val]) => (
+            <div key={label} style={{ background: 'var(--bg-card)', borderRadius: '7px', padding: '5px 8px', border: '1px solid var(--border)' }}>
+              <div style={{ fontSize: '9px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: '2px' }}>{label}</div>
+              <div style={{ fontSize: '12px', fontWeight: 600, fontFamily: 'var(--font-mono)', color: 'var(--text-primary)' }}>{val}</div>
             </div>
           ))}
         </div>

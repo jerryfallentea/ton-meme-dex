@@ -11,6 +11,7 @@ const tokens = [
     price: 0.00000842,
     initial_price: 0.000003,
     market_cap: 8420000,
+    holders: 3241,
     volatility: 0.035,
     trend_strength: 1.4,
     pump_chance: 0.08,
@@ -25,6 +26,7 @@ const tokens = [
     price: 0.00124,
     initial_price: 0.0005,
     market_cap: 12400000,
+    holders: 7832,
     volatility: 0.022,
     trend_strength: 1.1,
     pump_chance: 0.04,
@@ -39,6 +41,7 @@ const tokens = [
     price: 0.00000021,
     initial_price: 0.0000001,
     market_cap: 2100000,
+    holders: 1547,
     volatility: 0.05,
     trend_strength: 1.8,
     pump_chance: 0.12,
@@ -53,6 +56,7 @@ const tokens = [
     price: 0.0000551,
     initial_price: 0.00002,
     market_cap: 5510000,
+    holders: 2894,
     volatility: 0.028,
     trend_strength: 1.25,
     pump_chance: 0.06,
@@ -67,6 +71,7 @@ const tokens = [
     price: 0.000000091,
     initial_price: 0.00000005,
     market_cap: 910000,
+    holders: 892,
     volatility: 0.045,
     trend_strength: 1.6,
     pump_chance: 0.1,
@@ -90,8 +95,8 @@ if (existing > 0) {
 }
 
 const insert = db.prepare(`
-  INSERT INTO tokens (name, symbol, image, description, price, initial_price, market_cap, volatility, trend_strength, pump_chance, tx_speed, candle_interval)
-  VALUES (@name, @symbol, @image, @description, @price, @initial_price, @market_cap, @volatility, @trend_strength, @pump_chance, @tx_speed, @candle_interval)
+  INSERT INTO tokens (name, symbol, image, description, price, initial_price, market_cap, holders, volatility, trend_strength, pump_chance, tx_speed, candle_interval)
+  VALUES (@name, @symbol, @image, @description, @price, @initial_price, @market_cap, @holders, @volatility, @trend_strength, @pump_chance, @tx_speed, @candle_interval)
 `);
 
 for (const token of tokens) {
