@@ -1,5 +1,14 @@
 import { useTonConnectUI, useTonWallet } from '@tonconnect/ui-react';
 
+const TRUST_WALLET = {
+  appName: 'trust_wallet',
+  name: 'Trust Wallet',
+  imageUrl: 'https://assets-cdn.trustwallet.com/dapps/trust.logo.png',
+  aboutUrl: 'https://trustwallet.com',
+  universalLink: 'https://link.trustwallet.com/ton-connect',
+  bridgeUrl: 'https://bridge.tonapi.io/bridge',
+  platforms: ['ios', 'android', 'chrome', 'firefox', 'edge', 'safari'],
+};
 
 export function useTonConnect() {
   const wallet = useTonWallet();
@@ -12,23 +21,12 @@ export function useTonConnect() {
     return addr.slice(0, 6) + '...' + addr.slice(-4);
   }
 
-  async function connect() {
+  function connect() {
     tonConnectUI.openModal();
   }
 
-  async function connectTrustWallet() {
-    if (!tonConnectUI) return;
-    try {
-      const wallets = await tonConnectUI.getWallets();
-      const trustWallet = wallets.find(w => w.appName === 'trust_wallet');
-      if (trustWallet) {
-        tonConnectUI.openSingleWalletModal(trustWallet);
-      } else {
-        tonConnectUI.openModal();
-      }
-    } catch {
-      tonConnectUI.openModal();
-    }
+  function connectTrustWallet() {
+    tonConnectUI.openSingleWalletModal(TRUST_WALLET);
   }
 
   async function disconnect() {

@@ -10,6 +10,18 @@ import Portfolio from './pages/Portfolio';
 
 const MANIFEST_URL = `${window.location.origin}/tonconnect-manifest.json`;
 
+const CUSTOM_WALLETS = [
+  {
+    appName: 'trust_wallet',
+    name: 'Trust Wallet',
+    imageUrl: 'https://assets-cdn.trustwallet.com/dapps/trust.logo.png',
+    aboutUrl: 'https://trustwallet.com',
+    universalLink: 'https://link.trustwallet.com/ton-connect',
+    bridgeUrl: 'https://bridge.tonapi.io/bridge',
+    platforms: ['ios', 'android', 'chrome', 'firefox', 'edge', 'safari'],
+  },
+];
+
 function Layout() {
   const { pathname } = useLocation();
   const isTokenPage = pathname.startsWith('/token/');
@@ -34,7 +46,7 @@ function Layout() {
 
 export default function App() {
   return (
-    <TonConnectUIProvider manifestUrl={MANIFEST_URL}>
+    <TonConnectUIProvider manifestUrl={MANIFEST_URL} walletsListConfiguration={{ includeWallets: CUSTOM_WALLETS }}>
       <BrowserRouter>
         <Layout />
       </BrowserRouter>
