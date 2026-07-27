@@ -122,11 +122,38 @@ router.get('/portfolio/:wallet', (req, res) => {
   `).all(req.params.wallet);
 
   const history = db.prepare(`
-    SELECT o.*, t.name, t.symbol
+    SELECT
+      'tp'              AS kind,
+      o.id,
+      o.executed_at     AS timestamp,
+      o.executed_price,
+      o.amount,
+      o.pnl_usd,
+      o.pnl_ton,
+      o.target_price,
+      o.avg_buy_price,
+      t.name, t.symbol, t.image
     FROM tp_orders o JOIN tokens t ON t.id = o.token_id
     WHERE o.wallet = ? AND o.status = 'executed'
-    ORDER BY o.executed_at DESC LIMIT 20
-  `).all(req.params.wallet);
+
+    UNION ALL
+
+    SELECT
+      'sell'            AS kind,
+      tx.id,
+      tx.timestamp,
+      tx.price          AS executed_price,
+      tx.amount,
+      (tx.price - COALESCE(tx.avg_buy_price, 0)) * tx.amount AS pnl_usd,
+      ((tx.price - COALESCE(tx.avg_buy_price, 0)) * tx.amount) / 5.2 AS pnl_ton,
+      NULL              AS target_price,
+      tx.avg_buy_price,
+      t.name, t.symbol, t.image
+    FROM transactions tx JOIN tokens t ON t.id = tx.token_id
+    WHERE tx.wallet = ? AND tx.type = 'sell' AND tx.source = 'manual'
+
+    ORDER BY timestamp DESC LIMIT 30
+  `).all(req.params.wallet, req.params.wallet);
 
   const balance = db.prepare('SELECT * FROM ton_balances WHERE wallet = ?').get(req.params.wallet);
 

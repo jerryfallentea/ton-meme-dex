@@ -2,6 +2,7 @@ const express = require('express');
 const db = require('../db/database');
 
 const router = express.Router();
+const TON_PRICE_USD = 5.2;
 
 router.get('/', (req, res) => {
   const tokens = db.prepare(`
@@ -67,38 +68,76 @@ router.post('/:id/trade', (req, res) => {
   const price = token.price;
   const total = Number((amount * price).toFixed(6));
 
+  // Fetch portfolio for both buy and sell
+  const portfolio = db.prepare(
+    'SELECT * FROM portfolios WHERE wallet = ? AND token_id = ?'
+  ).get(wallet, token.id);
+
   if (type === 'sell') {
-    const portfolio = db.prepare(
-      'SELECT balance FROM portfolios WHERE wallet = ? AND token_id = ?'
-    ).get(wallet, token.id);
     if (!portfolio || portfolio.balance < amount) {
       return res.status(400).json({ error: 'Insufficient balance' });
     }
   }
 
-  const txResult = db.prepare(
-    'INSERT INTO transactions (token_id, type, amount, price, total, wallet) VALUES (?, ?, ?, ?, ?, ?)'
-  ).run(token.id, type, amount, price, total, wallet);
+  // ── Execute trade ──────────────────────────────────────────────────────────
 
   if (type === 'buy') {
-    const existing = db.prepare('SELECT * FROM portfolios WHERE wallet = ? AND token_id = ?').get(wallet, token.id);
-    if (existing) {
-      const newBalance = existing.balance + amount;
-      const newAvg = ((existing.avg_buy_price || price) * existing.balance + price * amount) / newBalance;
+    // Give new wallets a simulation starter balance of 1000 TON
+    db.prepare(`
+      INSERT OR IGNORE INTO ton_balances (wallet, balance_ton, total_realized_pnl_usd)
+      VALUES (?, 1000, 0)
+    `).run(wallet);
+
+    // Deduct cost (won't go below 0 in simulation)
+    const costTon = total / TON_PRICE_USD;
+    db.prepare('UPDATE ton_balances SET balance_ton = MAX(0, balance_ton - ?) WHERE wallet = ?')
+      .run(costTon, wallet);
+
+    // Update portfolio
+    if (portfolio) {
+      const newBalance = portfolio.balance + amount;
+      const newAvg = ((portfolio.avg_buy_price || price) * portfolio.balance + price * amount) / newBalance;
       db.prepare('UPDATE portfolios SET balance = ?, avg_buy_price = ? WHERE wallet = ? AND token_id = ?')
         .run(newBalance, newAvg, wallet, token.id);
     } else {
       db.prepare('INSERT INTO portfolios (wallet, token_id, balance, avg_buy_price) VALUES (?, ?, ?, ?)')
         .run(wallet, token.id, amount, price);
     }
+
     db.prepare('UPDATE tokens SET holders = holders + 1 WHERE id = ?').run(token.id);
+
+    // Record transaction
+    db.prepare(
+      'INSERT INTO transactions (token_id, type, amount, price, total, wallet, source) VALUES (?, ?, ?, ?, ?, ?, ?)'
+    ).run(token.id, 'buy', amount, price, total, wallet, 'manual');
+
   } else {
+    // SELL — capture avg_buy_price now (before deducting balance)
+    const avgBuyPrice = portfolio.avg_buy_price || 0;
+    const pnlUsd     = Number(((price - avgBuyPrice) * amount).toFixed(6));
+    const proceedsTon = Number((total / TON_PRICE_USD).toFixed(8));
+
+    // Deduct from portfolio
     db.prepare('UPDATE portfolios SET balance = balance - ? WHERE wallet = ? AND token_id = ?')
       .run(amount, wallet, token.id);
+
+    // Credit proceeds + realized PnL to ton_balances
+    db.prepare(`
+      INSERT INTO ton_balances (wallet, balance_ton, total_realized_pnl_usd)
+      VALUES (?, ?, ?)
+      ON CONFLICT(wallet) DO UPDATE SET
+        balance_ton            = balance_ton            + excluded.balance_ton,
+        total_realized_pnl_usd = total_realized_pnl_usd + excluded.total_realized_pnl_usd
+    `).run(wallet, proceedsTon, pnlUsd);
+
+    // Record transaction with avg_buy_price for PnL history
+    db.prepare(
+      'INSERT INTO transactions (token_id, type, amount, price, total, wallet, avg_buy_price, source) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+    ).run(token.id, 'sell', amount, price, total, wallet, avgBuyPrice, 'manual');
   }
 
   const tx = {
-    id: txResult.lastInsertRowid,
+    id: db.prepare('SELECT last_insert_rowid() as id').get().id,
     token_id: token.id,
     type,
     amount,

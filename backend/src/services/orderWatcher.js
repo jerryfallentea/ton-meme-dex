@@ -34,10 +34,10 @@ function executeOrder(order, currentPrice, io) {
       total_realized_pnl_usd = total_realized_pnl_usd + excluded.total_realized_pnl_usd
   `).run(order.wallet, proceeds_ton, pnl_usd);
 
-  // Record sell transaction
+  // Record sell transaction (source = 'tp' so it's excluded from manual sell history)
   db.prepare(
-    'INSERT INTO transactions (token_id, type, amount, price, total, wallet) VALUES (?, ?, ?, ?, ?, ?)'
-  ).run(order.token_id, 'sell', order.amount, currentPrice, proceeds_usd, order.wallet);
+    'INSERT INTO transactions (token_id, type, amount, price, total, wallet, avg_buy_price, source) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+  ).run(order.token_id, 'sell', order.amount, currentPrice, proceeds_usd, order.wallet, order.avg_buy_price || 0, 'tp');
 
   const token = db.prepare('SELECT symbol FROM tokens WHERE id = ?').get(order.token_id);
 

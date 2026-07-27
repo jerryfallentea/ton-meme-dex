@@ -99,4 +99,8 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_tp_orders_token ON tp_orders(token_id, status);
 `);
 
+// Safe migrations for existing databases
+try { db.exec('ALTER TABLE transactions ADD COLUMN avg_buy_price REAL'); } catch {}
+try { db.exec("ALTER TABLE transactions ADD COLUMN source TEXT NOT NULL DEFAULT 'manual'"); } catch {}
+
 module.exports = db;

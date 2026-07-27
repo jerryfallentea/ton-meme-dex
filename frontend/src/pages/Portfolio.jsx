@@ -217,31 +217,50 @@ export default function Portfolio() {
       {/* History */}
       {!loading && tab === 'history' && (
         history.length === 0
-          ? <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>No executed orders yet.</div>
+          ? <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>No closed positions yet.</div>
           : <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {history.map((o) => (
-                <div key={o.id} style={card}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                    <div style={{ fontWeight: 700 }}>{o.name} <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>({o.symbol})</span></div>
-                    <span style={{ fontSize: '11px', color: 'var(--green)', fontWeight: 600 }}>✓ Executed</span>
-                  </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px', fontSize: '11px' }}>
-                    {[
-                      ['Sold @ ', `$${fmt(o.executed_price)}`],
-                      ['Amount', `${o.amount.toFixed(2)} ${o.symbol}`],
-                      ['PnL USD', `${o.pnl_usd >= 0 ? '+' : ''}$${Number(o.pnl_usd).toFixed(4)}`],
-                      ['Target was', `$${fmt(o.target_price)}`],
-                      ['Received', `${Number(o.pnl_ton + (o.amount * o.executed_price / TON_PRICE)).toFixed(4)} TON`],
-                      ['PnL TON', `${o.pnl_ton >= 0 ? '+' : ''}${Number(o.pnl_ton).toFixed(4)}`],
-                    ].map(([label, val]) => (
-                      <div key={label}>
-                        <div style={{ color: 'var(--text-muted)', marginBottom: '1px' }}>{label}</div>
-                        <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, color: label.startsWith('PnL') ? (o.pnl_usd >= 0 ? 'var(--green)' : 'var(--red)') : 'var(--text-primary)' }}>{val}</div>
+              {history.map((o) => {
+                const isTP      = o.kind === 'tp';
+                const pnlUsd    = Number(o.pnl_usd  || 0);
+                const pnlTon    = Number(o.pnl_ton  || 0);
+                const received  = Number((o.amount * o.executed_price) / TON_PRICE).toFixed(4);
+                const pnlColor  = pnlUsd >= 0 ? 'var(--green)' : 'var(--red)';
+                return (
+                  <div key={`${o.kind}-${o.id}`} style={card}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        {o.image && <img src={o.image} style={{ width: '24px', height: '24px', borderRadius: '50%' }} />}
+                        <div style={{ fontWeight: 700 }}>{o.name} <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>({o.symbol})</span></div>
                       </div>
-                    ))}
+                      <span style={{
+                        fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '4px',
+                        background: isTP ? 'rgba(245,166,35,0.15)' : 'rgba(255,68,102,0.12)',
+                        color: isTP ? '#f5a623' : 'var(--red)',
+                      }}>
+                        {isTP ? '🎯 TP' : '💸 Sold'}
+                      </span>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px', fontSize: '11px' }}>
+                      {[
+                        ['Sold @',    `$${fmt(o.executed_price)}`],
+                        ['Amount',    `${Number(o.amount).toFixed(2)} ${o.symbol}`],
+                        ['Received',  `${received} TON`],
+                        ['Avg Entry', `$${fmt(o.avg_buy_price)}`],
+                        ['PnL USD',   `${pnlUsd >= 0 ? '+' : ''}$${pnlUsd.toFixed(4)}`],
+                        ['PnL TON',   `${pnlTon >= 0 ? '+' : ''}${pnlTon.toFixed(4)}`],
+                      ].map(([label, val]) => (
+                        <div key={label}>
+                          <div style={{ color: 'var(--text-muted)', marginBottom: '1px' }}>{label}</div>
+                          <div style={{
+                            fontFamily: 'var(--font-mono)', fontWeight: 600,
+                            color: label.startsWith('PnL') ? pnlColor : 'var(--text-primary)',
+                          }}>{val}</div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
       )}
     </div>
