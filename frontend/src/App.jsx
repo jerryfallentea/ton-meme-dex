@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
-import { WalletProvider } from './context/WalletContext';
+import { TonConnectUIProvider } from '@tonconnect/ui-react';
 import Navbar from './components/Navbar';
 import BottomNav from './components/BottomNav';
 import TradeModal from './components/TradeModal';
 import Home from './pages/Home';
 import TokenDetail from './pages/TokenDetail';
 import Portfolio from './pages/Portfolio';
+
+const MANIFEST_URL = `${window.location.origin}/tonconnect-manifest.json`;
 
 function Layout() {
   const { pathname } = useLocation();
@@ -32,10 +34,10 @@ function Layout() {
 
 export default function App() {
   return (
-    <WalletProvider>
+    <TonConnectUIProvider manifestUrl={MANIFEST_URL}>
       <BrowserRouter>
         <Layout />
       </BrowserRouter>
-    </WalletProvider>
+    </TonConnectUIProvider>
   );
 }

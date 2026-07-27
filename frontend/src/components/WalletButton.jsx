@@ -1,6 +1,15 @@
 import { useState, useRef, useEffect } from 'react';
 import { useTonConnect } from '../hooks/useTonConnect';
 
+function TrustWalletIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 40 40" fill="none">
+      <circle cx="20" cy="20" r="20" fill="#3375BB"/>
+      <path d="M20 8l-12 5.5v8c0 7 5.2 13.5 12 15 6.8-1.5 12-8 12-15v-8L20 8z" fill="white"/>
+    </svg>
+  );
+}
+
 function WalletIcon() {
   return (
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
@@ -31,12 +40,14 @@ function DisconnectIcon() {
 }
 
 export default function WalletButton() {
-  const { connected, address, shortAddress, connect, disconnect } = useTonConnect();
+  const { connected, address, shortAddress, connect, connectTrustWallet, disconnect } = useTonConnect();
   const [open, setOpen] = useState(false);
+  const [connectOpen, setConnectOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const ref = useRef(null);
+  const connectRef = useRef(null);
 
-  // Close dropdown when clicking outside
+  // Close connected-wallet dropdown when clicking outside
   useEffect(() => {
     if (!open) return;
     function handler(e) {
@@ -49,6 +60,20 @@ export default function WalletButton() {
       document.removeEventListener('touchstart', handler);
     };
   }, [open]);
+
+  // Close connect-picker dropdown when clicking outside
+  useEffect(() => {
+    if (!connectOpen) return;
+    function handler(e) {
+      if (connectRef.current && !connectRef.current.contains(e.target)) setConnectOpen(false);
+    }
+    document.addEventListener('mousedown', handler);
+    document.addEventListener('touchstart', handler);
+    return () => {
+      document.removeEventListener('mousedown', handler);
+      document.removeEventListener('touchstart', handler);
+    };
+  }, [connectOpen]);
 
   function copyAddress() {
     if (!address) return;
@@ -65,12 +90,33 @@ export default function WalletButton() {
 
   if (!connected) {
     return (
-      <button
-        style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 600, background: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer', transition: 'all 0.15s', whiteSpace: 'nowrap' }}
-        onClick={connect}
-      >
-        <WalletIcon /> Connect Wallet
-      </button>
+      <div ref={connectRef} style={{ position: 'relative' }}>
+        <button
+          style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 600, background: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer', transition: 'all 0.15s', whiteSpace: 'nowrap' }}
+          onClick={() => setConnectOpen(v => !v)}
+        >
+          <WalletIcon /> Connect Wallet
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" style={{ opacity: 0.8, transition: 'transform 0.15s', transform: connectOpen ? 'rotate(180deg)' : 'none' }}>
+            <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
+        {connectOpen && (
+          <div style={{ position: 'absolute', top: 'calc(100% + 6px)', right: 0, minWidth: '180px', background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '10px', boxShadow: '0 8px 24px rgba(0,0,0,0.4)', zIndex: 200, overflow: 'hidden' }}>
+            <button
+              onClick={() => { connect(); setConnectOpen(false); }}
+              style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 12px', background: 'none', color: 'var(--text-primary)', fontSize: '13px', fontWeight: 500, borderBottom: '1px solid var(--border)', textAlign: 'left', cursor: 'pointer', border: 'none' }}
+            >
+              <WalletIcon /> All Wallets
+            </button>
+            <button
+              onClick={() => { connectTrustWallet(); setConnectOpen(false); }}
+              style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 12px', background: 'none', color: 'var(--text-primary)', fontSize: '13px', fontWeight: 500, textAlign: 'left', cursor: 'pointer', border: 'none' }}
+            >
+              <TrustWalletIcon /> Trust Wallet
+            </button>
+          </div>
+        )}
+      </div>
     );
   }
 

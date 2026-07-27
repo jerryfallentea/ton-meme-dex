@@ -36,40 +36,14 @@ function DiamondLogo() {
   );
 }
 
-function DevResetButton() {
-  if (!import.meta.env.DEV) return null;
-  function reset() {
-    localStorage.removeItem('ton_wallet');
-    window.location.reload();
-  }
-  return (
-    <button
-      onClick={reset}
-      title="DEV: clear wallet storage"
-      style={{
-        position: 'fixed', bottom: 72, right: 12, zIndex: 9999,
-        padding: '4px 8px', fontSize: 10, fontWeight: 700,
-        background: 'var(--red-dim)', color: 'var(--red)',
-        border: '1px solid var(--red)', borderRadius: 6,
-        cursor: 'pointer', opacity: 0.8,
-      }}
-    >
-      RESET WALLET
-    </button>
-  );
-}
-
 export default function Navbar() {
   return (
-    <>
-      <nav style={styles.nav}>
-        <Link to="/" style={styles.logo}>
-          <DiamondLogo />
-          <span>TON<span style={styles.logoAccent}>DEX</span></span>
-        </Link>
-        <WalletButton />
-      </nav>
-      <DevResetButton />
-    </>
+    <nav style={styles.nav}>
+      <Link to="/" style={styles.logo}>
+        <DiamondLogo />
+        <span>TON<span style={styles.logoAccent}>DEX</span></span>
+      </Link>
+      <WalletButton />
+    </nav>
   );
 }
