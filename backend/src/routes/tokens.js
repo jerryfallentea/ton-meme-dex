@@ -23,16 +23,25 @@ router.get('/:id', (req, res) => {
 
 router.get('/:id/candles', (req, res) => {
   const { limit = 300, from } = req.query;
-  let query = 'SELECT time, open, high, low, close, volume FROM candlesticks WHERE token_id = ?';
+
+  // Always return the MOST RECENT candles, not the oldest.
+  // Using ASC + LIMIT returns the oldest N rows, which causes a gap on the
+  // chart when the server builds new candles beyond the seeded 300.
+  let query;
   const params = [req.params.id];
 
   if (from) {
-    query += ' AND time >= ?';
-    params.push(Number(from));
+    query = `SELECT time, open, high, low, close, volume FROM candlesticks
+             WHERE token_id = ? AND time >= ?
+             ORDER BY time ASC LIMIT ?`;
+    params.push(Number(from), Number(limit));
+  } else {
+    query = `SELECT * FROM (
+               SELECT time, open, high, low, close, volume FROM candlesticks
+               WHERE token_id = ? ORDER BY time DESC LIMIT ?
+             ) ORDER BY time ASC`;
+    params.push(Number(limit));
   }
-
-  query += ' ORDER BY time ASC LIMIT ?';
-  params.push(Number(limit));
 
   const candles = db.prepare(query).all(...params);
 
