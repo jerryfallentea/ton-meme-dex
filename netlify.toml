@@ -4,11 +4,11 @@
   publish = "dist"
 
 [build.environment]
-  VITE_API_URL = ""
+  VITE_API_URL = "http://[2a02:c207:2343:4036::1]:3001"
 
 [[redirects]]
   from   = "/api/*"
-  to     = "https://placeholder-railway-url.up.railway.app/api/:splat"
+  to     = "http://[2a02:c207:2343:4036::1]:3001/api/:splat"
   status = 200
   force  = true
 
