@@ -41,10 +41,11 @@ export function rawToFriendly(raw, bounceable = false) {
   return b64urlencode(buf);
 }
 
-// Creates a fresh client session (X25519 keypair + random client ID)
+// Creates a fresh client session — clientId MUST be hex(publicKey) so the
+// wallet can encrypt its response to us using X25519 DH.
 export function createSession() {
   const keypair = nacl.box.keyPair();
-  const clientId = Array.from(nacl.randomBytes(32), b => b.toString(16).padStart(2, '0')).join('');
+  const clientId = Array.from(keypair.publicKey, b => b.toString(16).padStart(2, '0')).join('');
   return { clientId, keypair };
 }
 
@@ -55,31 +56,42 @@ export function buildConnectUrl(universalLink, manifestUrl, clientId) {
   return `${universalLink}?${new URLSearchParams({ v: '2', id: clientId, r, ret: 'none' })}`;
 }
 
-// Opens an SSE stream on the TON bridge and resolves when the wallet responds
+// Opens an SSE stream on the TON bridge and resolves when the wallet responds.
+// Automatically reconnects if the bridge closes the connection (TTL ~300 s).
 export function listenForWallet(clientId, keypair, signal) {
   return new Promise((resolve, reject) => {
     signal.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')));
 
-    fetch(`${BRIDGE}/events?client_id=${clientId}`, { signal })
-      .then(async (res) => {
+    let lastEventId = 0;
+
+    async function poll() {
+      if (signal.aborted) return;
+      try {
+        const url = `${BRIDGE}/events?client_id=${clientId}&last_event_id=${lastEventId}`;
+        const res = await fetch(url, { signal });
+        if (!res.ok) throw new Error(`Bridge returned ${res.status}`);
+
         const reader = res.body.getReader();
         const dec = new TextDecoder();
         let buf = '';
 
         while (true) {
           const { value, done } = await reader.read();
-          if (done) break;
+          if (done) { setTimeout(poll, 1000); return; } // reconnect on normal close
           buf += dec.decode(value, { stream: true });
           const lines = buf.split('\n');
           buf = lines.pop();
 
           for (const line of lines) {
+            if (line.startsWith('id:')) {
+              lastEventId = parseInt(line.slice(3).trim(), 10) || lastEventId;
+            }
             if (!line.startsWith('data:')) continue;
             try {
               const ev = JSON.parse(line.slice(5).trim());
               if (!ev.from || !ev.message) continue;
 
-              // Decrypt NaCl box: first 24 bytes = nonce, rest = ciphertext
+              // Decrypt NaCl box — first 24 bytes are the nonce
               const enc = b64decode(ev.message);
               const plain = nacl.box.open(
                 enc.slice(24), enc.slice(0, 24),
@@ -103,7 +115,12 @@ export function listenForWallet(clientId, keypair, signal) {
             } catch { /* skip malformed frames */ }
           }
         }
-      })
-      .catch(reject);
+      } catch (e) {
+        if (e.name === 'AbortError') return;
+        if (!signal.aborted) setTimeout(poll, 2000); // retry on network error
+      }
+    }
+
+    poll();
   });
 }
