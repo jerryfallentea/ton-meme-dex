@@ -18,7 +18,7 @@ const tokens = [
     trend_strength: 1.4,
     pump_chance: 0.08,
     tx_speed: 1800,
-    candle_interval: 60,
+    candle_interval: 900,
   },
   {
     name: 'TON Doge',
@@ -34,7 +34,7 @@ const tokens = [
     trend_strength: 1.1,
     pump_chance: 0.04,
     tx_speed: 4000,
-    candle_interval: 60,
+    candle_interval: 900,
   },
   {
     name: 'GramCat',
@@ -50,7 +50,7 @@ const tokens = [
     trend_strength: 1.8,
     pump_chance: 0.12,
     tx_speed: 1200,
-    candle_interval: 60,
+    candle_interval: 900,
   },
   {
     name: 'TonkWojak',
@@ -66,7 +66,7 @@ const tokens = [
     trend_strength: 1.25,
     pump_chance: 0.06,
     tx_speed: 2500,
-    candle_interval: 60,
+    candle_interval: 900,
   },
   {
     name: 'GramShib',
@@ -82,7 +82,7 @@ const tokens = [
     trend_strength: 1.6,
     pump_chance: 0.1,
     tx_speed: 900,
-    candle_interval: 60,
+    candle_interval: 900,
   },
 ];
 

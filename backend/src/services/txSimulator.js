@@ -1,4 +1,5 @@
 const db = require('../db/database');
+const { updateLiveCandle } = require('./chartSimulator');
 
 const PREFIXES = ['EQ', 'UQ'];
 const CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjklmnpqrstuvwxyz0123456789';
@@ -50,6 +51,9 @@ function simulateTx(token, io) {
   const priceImpact = isBuy ? 1 + nudge : 1 - nudge * 0.5;
   const newPrice = Number((price * priceImpact).toFixed(12));
   db.prepare('UPDATE tokens SET price = ? WHERE id = ?').run(newPrice, token.id);
+
+  // Push transaction price into the forming candle so chart and tx feed stay in sync
+  updateLiveCandle(token.id, newPrice, total);
 
   if (global._checkTpOrders) global._checkTpOrders(token.id, newPrice);
 }

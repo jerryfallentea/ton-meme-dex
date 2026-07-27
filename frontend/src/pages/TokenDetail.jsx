@@ -39,6 +39,7 @@ export default function TokenDetail() {
   const [portfolio, setPortfolio] = useState(null);
   const [loading, setLoading] = useState(true);
   const candleCallbackRef = useRef(null);
+  const tickCallbackRef   = useRef(null);
 
   useEffect(() => {
     Promise.all([
@@ -77,9 +78,16 @@ export default function TokenDetail() {
 
   const handlePriceUpdate = useCallback((p) => setPrice(p), []);
 
+  // Candle tick: update header price in real-time and forward to chart
+  const handleCandleTick = useCallback((candle) => {
+    setPrice(candle.close);
+    tickCallbackRef.current?.(candle);
+  }, []);
+
   // Socket TP events
   useSocket(Number(id), {
     onCandle: handleNewCandle,
+    onCandleTick: handleCandleTick,
     onTransaction: handleNewTx,
     onPriceUpdate: handlePriceUpdate,
     onTpCreated: (data) => { if (data.wallet === address) setTpOrders((prev) => [...prev, data.order]); },
@@ -96,6 +104,11 @@ export default function TokenDetail() {
   const registerCandleCallback = useCallback((cb) => {
     candleCallbackRef.current = cb;
     return () => { candleCallbackRef.current = null; };
+  }, []);
+
+  const registerTickCallback = useCallback((cb) => {
+    tickCallbackRef.current = cb;
+    return () => { tickCallbackRef.current = null; };
   }, []);
 
   async function cancelOrder(orderId) {
@@ -228,7 +241,7 @@ export default function TokenDetail() {
 
       {/* Chart */}
       <div style={{ height: '240px', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
-        <TradingChart candles={candles} onNewCandle={registerCandleCallback} tpOrders={tpOrders} />
+        <TradingChart candles={candles} onNewCandle={registerCandleCallback} onCandleTick={registerTickCallback} tpOrders={tpOrders} />
       </div>
 
       {/* Transactions */}

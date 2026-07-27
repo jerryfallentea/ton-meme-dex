@@ -21,7 +21,7 @@ function priceFormatter(price) {
   return price.toFixed(4);
 }
 
-export default function TradingChart({ candles, onNewCandle, tpOrders = [] }) {
+export default function TradingChart({ candles, onNewCandle, onCandleTick, tpOrders = [] }) {
   const containerRef = useRef(null);
   const chartRef = useRef(null);
   const seriesRef = useRef(null);
@@ -103,6 +103,12 @@ export default function TradingChart({ candles, onNewCandle, tpOrders = [] }) {
     if (!onNewCandle) return;
     return onNewCandle((candle) => seriesRef.current?.update(candle));
   }, [onNewCandle]);
+
+  // Live forming-candle ticks — updates the rightmost bar in real-time
+  useEffect(() => {
+    if (!onCandleTick) return;
+    return onCandleTick((candle) => seriesRef.current?.update(candle));
+  }, [onCandleTick]);
 
   // Sync TP price lines with orders
   useEffect(() => {

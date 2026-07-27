@@ -13,11 +13,11 @@ function getSocket() {
 }
 
 export function useSocket(tokenId, {
-  onCandle, onTransaction, onPriceUpdate,
+  onCandle, onCandleTick, onTransaction, onPriceUpdate,
   onTpCreated, onTpUpdated, onTpCancelled, onTpExecuted,
 } = {}) {
   const handlersRef = useRef({});
-  handlersRef.current = { onCandle, onTransaction, onPriceUpdate, onTpCreated, onTpUpdated, onTpCancelled, onTpExecuted };
+  handlersRef.current = { onCandle, onCandleTick, onTransaction, onPriceUpdate, onTpCreated, onTpUpdated, onTpCancelled, onTpExecuted };
 
   useEffect(() => {
     if (!tokenId) return;
@@ -25,9 +25,10 @@ export function useSocket(tokenId, {
     socket.emit('join-token', tokenId);
 
     const handlers = {
-      'new-candle': (data) => { if (data.tokenId === tokenId) handlersRef.current.onCandle?.(data.candle); },
-      'new-transaction': (tx) => { if (tx.token_id === tokenId) handlersRef.current.onTransaction?.(tx); },
-      'price-update': (data) => { if (data.tokenId === tokenId) handlersRef.current.onPriceUpdate?.(data.price); },
+      'new-candle':      (data) => { if (data.tokenId === tokenId) handlersRef.current.onCandle?.(data.candle); },
+      'candle-tick':     (data) => { if (data.tokenId === tokenId) handlersRef.current.onCandleTick?.(data.candle); },
+      'new-transaction': (tx)   => { if (tx.token_id  === tokenId) handlersRef.current.onTransaction?.(tx); },
+      'price-update':    (data) => { if (data.tokenId === tokenId) handlersRef.current.onPriceUpdate?.(data.price); },
       'tp-order-created': (data) => handlersRef.current.onTpCreated?.(data),
       'tp-order-updated': (data) => handlersRef.current.onTpUpdated?.(data),
       'tp-order-cancelled': (data) => handlersRef.current.onTpCancelled?.(data),

@@ -29,7 +29,7 @@ db.exec(`
     trend_strength REAL NOT NULL DEFAULT 1.0,
     pump_chance REAL NOT NULL DEFAULT 0.05,
     tx_speed INTEGER NOT NULL DEFAULT 3000,
-    candle_interval INTEGER NOT NULL DEFAULT 60,
+    candle_interval INTEGER NOT NULL DEFAULT 900,
     active INTEGER NOT NULL DEFAULT 1,
     created_at INTEGER NOT NULL DEFAULT (unixepoch())
   );
