@@ -10,22 +10,36 @@ function randomWallet() {
   return addr;
 }
 
-function randomAmount(price, type) {
-  const usdValue = type === 'buy'
-    ? 10 + Math.random() * 490
-    : 5 + Math.random() * 200;
+function randomAmount(price, type, trendMode) {
+  let usdValue;
+  if (trendMode === 'bullish') {
+    // Larger buys, smaller sells
+    usdValue = type === 'buy' ? 50 + Math.random() * 950 : 5 + Math.random() * 100;
+  } else if (trendMode === 'bearish') {
+    // Smaller buys, larger sells (panic selling)
+    usdValue = type === 'buy' ? 5 + Math.random() * 100  : 50 + Math.random() * 700;
+  } else {
+    usdValue = type === 'buy' ? 10 + Math.random() * 490 : 5  + Math.random() * 200;
+  }
   return Number((usdValue / price).toFixed(2));
 }
 
 function simulateTx(token, io) {
-  const currentToken = db.prepare('SELECT price FROM tokens WHERE id = ?').get(token.id);
+  const currentToken = db.prepare('SELECT price, trend_mode FROM tokens WHERE id = ?').get(token.id);
   if (!currentToken) return;
 
-  const price = currentToken.price;
-  const isBuy = Math.random() < 0.68;
-  const type = isBuy ? 'buy' : 'sell';
-  const amount = randomAmount(price, type);
-  const total = Number((amount * price).toFixed(6));
+  const price     = currentToken.price;
+  const trendMode = currentToken.trend_mode || 'auto';
+
+  // Buy probability driven by trend direction
+  const buyChance = trendMode === 'bullish' ? 0.80
+                  : trendMode === 'bearish' ? 0.30
+                  : 0.60;
+
+  const isBuy = Math.random() < buyChance;
+  const type  = isBuy ? 'buy' : 'sell';
+  const amount = randomAmount(price, type, trendMode);
+  const total  = Number((amount * price).toFixed(6));
   const wallet = randomWallet();
 
   const result = db.prepare(
