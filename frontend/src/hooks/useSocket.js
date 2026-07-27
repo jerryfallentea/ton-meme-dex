@@ -1,11 +1,15 @@
 import { useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
 
+// In production, VITE_API_URL points to Railway backend
+// In development, empty string lets Vite proxy handle it
+const BACKEND = import.meta.env.VITE_API_URL || '';
+
 let socketInstance = null;
 
 function getSocket() {
   if (!socketInstance) {
-    socketInstance = io('/', { transports: ['websocket', 'polling'] });
+    socketInstance = io(BACKEND, { transports: ['websocket', 'polling'] });
   }
   return socketInstance;
 }
