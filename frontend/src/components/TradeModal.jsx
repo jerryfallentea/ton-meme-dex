@@ -255,11 +255,11 @@ export default function TradeModal({ onClose }) {
                       : <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: '#fff', flexShrink: 0 }}>{token.symbol[0]}</div>
                     }
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontWeight: 700, fontSize: '14px' }}>{token.name}</div>
-                      <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{token.symbol} · {fmtMC(token.market_cap)}</div>
+                      <div style={{ fontWeight: 700, fontSize: '14px', color: 'var(--text-primary)' }}>{token.name}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{token.symbol} · {fmtMC(token.market_cap)}</div>
                     </div>
                     <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                      <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: '13px' }}>${fmt(token.price)}</div>
+                      <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: '13px', color: 'var(--text-primary)' }}>${fmt(token.price)}</div>
                       <div style={{ fontSize: '12px', fontWeight: 700, color: change >= 0 ? 'var(--green)' : 'var(--red)' }}>
                         {change >= 0 ? '▲' : '▼'} {Math.abs(change).toFixed(2)}%
                       </div>
