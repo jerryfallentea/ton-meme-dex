@@ -59,7 +59,7 @@ const tabs = [
 export default function BottomNav({ onOpenTrade }) {
   const { pathname, search } = useLocation();
   const navigate = useNavigate();
-  const { connected, connect, disconnect, shortAddress } = useTonConnect();
+  const { connected, connect, shortAddress } = useTonConnect();
 
   function isActive(tab) {
     if (tab.key === 'trade') return false;
@@ -69,7 +69,7 @@ export default function BottomNav({ onOpenTrade }) {
 
   function handleTab(tab) {
     if (tab.key === 'trade')  return onOpenTrade?.();
-    if (tab.key === 'wallet') return connected ? disconnect() : connect();
+    if (tab.key === 'wallet') return connected ? undefined : connect();
     navigate(tab.path);
   }
 
